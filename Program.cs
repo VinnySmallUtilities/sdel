@@ -18,7 +18,7 @@ namespace sdel
             // args = new string[] { "-", "/inRam/1/" };
             // args = new string[] { "-", "/inRam/Renpy/" };
 
-            if (args.Length < 1)
+            if (args.Length < 2)
             {
                 Console.Error.WriteLine("sdel dir");
                 Console.WriteLine("Examples:");
@@ -60,7 +60,7 @@ namespace sdel
             else
             if (!File.Exists(path))
             {
-                Console.Error.WriteLine($"Directory or file not exists:\n\"{path}\"");
+                Console.Error.WriteLine($"File not exists:\n\"{path}\"");
                 return 102;
             }
             else
