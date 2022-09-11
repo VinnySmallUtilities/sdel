@@ -229,7 +229,7 @@ namespace sdel
                 }
             }
 
-            File.Open(newFileName, FileMode.Create).Close();
+            File.Open(newFileName, FileMode.Truncate).Close();
             File.Delete(newFileName);
 
             if (File.Exists(newFileName) || File.Exists(oldFileName))
