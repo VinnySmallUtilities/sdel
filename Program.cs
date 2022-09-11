@@ -27,10 +27,11 @@ namespace sdel
                 Console.WriteLine("flag 'v' switches to verbosive mode");
                 Console.WriteLine("flag 'vv' switches to twice verbosive mode");
                 Console.WriteLine("flag 'z' switches to 0x00 pattern");
+                // Console.WriteLine("flag 'zz' switches to twice rewriting. 0x55AA and 0x00 pattern");
                 return 101;
             }
-            
-            
+
+
             var bt    = new byte[16*1024*1024];
             var path  = args[1];
             var flags = args[0];
