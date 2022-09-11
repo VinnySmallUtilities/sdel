@@ -15,7 +15,7 @@ namespace sdel
         public static int Main(string[] args)
         {
             // args = new string[] { "v", "/home/g2/g2/.wine/" };
-            args = new string[] { "z3", "/inRam/1.txt" };
+            // args = new string[] { "z3", "/inRam/1.txt" };
             // args = new string[] { "-", "/inRam/1/" };
             // args = new string[] { "-", "/inRam/Renpy/" };
 
