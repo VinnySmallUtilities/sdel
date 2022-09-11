@@ -16,7 +16,7 @@ The file is deleted as follows:
 2) The file system block size is not known to the program. It works at too much a high level.
 3) The file size is expanded to a multiple of 65536 bytes (0x10000) by the same pattern
 4) The file is renamed. The characters of the file name are replaced with spaces with the same length.
-    For example, the file "a.txt " will be renamed to "     ".
+    For example, the file "a.txt " will be renamed to five spaces.
 5) The file is reopened with the "File.truncate" flag. That is, when opening a file, the OS will trim this file to zero size (it will be harder to understand how much the file weighed)
 6) The file is deleted by the usual means of the OS
 
@@ -34,6 +34,6 @@ The file is deleted as follows:
 
 2) Размер блока файловой системы не известен программе. Она работает на слишком высоком уровне.
 3) Размер файла дополняется до кратного 65536 байтам (0x10000) тем же шаблоном
-4) Файл переименовывается. Символы имени файла перезатираются пробелами с той же длиной. Например, файл "a.txt" будет переименован в "     "
+4) Файл переименовывается. Символы имени файла перезатираются пробелами с той же длиной. Например, файл "a.txt" будет переименован в имя, состоящее из пяти пробелов
 5) Файл переоткрывается с флагом File.truncate. То есть при открытии файла, ОС обрежет этот файл до нулевого размера (тяжелее будет понять, сколько весил файл)
 6) Файл удаляется обычыми средствами ОС
