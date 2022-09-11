@@ -21,7 +21,7 @@ namespace sdel
             if (args.Length < 1)
             {
                 Console.Error.WriteLine("sdel dir");
-                Console.WriteLine("Example:");
+                Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
                 Console.WriteLine("sdel v /home/user/.wine");
                 Console.WriteLine("flag 'v' switches to verbosive mode");
