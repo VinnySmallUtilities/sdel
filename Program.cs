@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Виноградов Сергей Васильевич, 1984, Мытищи
+// https://github.com/VinnySmallUtilities/sdel
+// 2022 год
+
+
+using System;
 using System.IO;
 using System.Text;
 
@@ -21,6 +26,7 @@ namespace sdel
                 Console.WriteLine("sdel v /home/user/.wine");
                 Console.WriteLine("flag 'v' switches to verbosive mode");
                 Console.WriteLine("flag 'vv' switches to twice verbosive mode");
+                Console.WriteLine("flag 'z' switches to 0x00 pattern");
                 return 101;
             }
             
@@ -39,6 +45,8 @@ namespace sdel
                 Console.WriteLine("Verbosive mode twiced");
                 verbose = 2;
             }
+            
+            var zFlag = flags.Contains("z") ? 1 : 0;
 
             var isDirectory = false;
             if (Directory.Exists(path))
@@ -60,7 +68,10 @@ namespace sdel
             var A = new byte[] { 0x55, 0xAA };
             for (int i = 0; i < bt.Length; i++)
             {
-                bt[i] = A[i & 1];
+                if (zFlag == 0)
+                    bt[i] = A[i & 1];
+                else
+                    bt[i] = 0;  // Флаг z установлен
             }
 
             if (!isDirectory)
@@ -178,6 +189,8 @@ namespace sdel
 
                         fs.Write(bt, 0, (int) cnt);
                         offset += cnt;
+
+                        fs.Flush();
                     }
 
                     var c = offset & 65535;
@@ -185,6 +198,7 @@ namespace sdel
                     {
                         c = 65536 - c;
                         fs.Write(bt, 0, (int) c);
+                        fs.Flush();
                     }
                 }
             }
