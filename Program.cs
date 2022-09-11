@@ -100,6 +100,12 @@ namespace sdel
             if (!isDirectory)
             {
                 deleteFile(new FileInfo(path), bt, true, true, verbose: verbose);
+
+                if (File.Exists(path))
+                    Console.WriteLine($"Deletion failed for file {path}");
+                else
+                    Console.WriteLine($"Deletion successfull ended for file {path}");
+
                 return 0;
             }
 
