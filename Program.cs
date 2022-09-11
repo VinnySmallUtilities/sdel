@@ -147,7 +147,7 @@ namespace sdel
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.WriteLine("Deletion successfull ended");
+            Console.WriteLine($"Deletion successfull ended for directory {path}");
             Console.WriteLine();
 
             return 0;
