@@ -108,7 +108,9 @@ The explanations are similar to those given above. Inode cleanup using sfill is 
 
 Pressing ctrl+c will cause a stop the program. You can to delete the created files manually.
 
+If the cursor disappears after removing the program, run the program without parameters:
 
+sdel
 
 
 # Русский
@@ -213,3 +215,6 @@ sudo sdel crd_prv_sl ~/_toErase
 
 Нажатие ctrl+c прекращает работу программы. Удалите созданные файлы вручную.
 
+Если после снятия программы пропал курсор, запустите программу без параметров:
+
+sdel
