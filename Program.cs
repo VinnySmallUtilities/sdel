@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -15,14 +16,16 @@ namespace sdel
     {
         class Progress
         {
-            public long rewritedSize     = 0;
-            public long SizeToRewrite    = 0;
+            public long rewritedSize      = 0;
+            public long SizeToRewrite     = 0;
 
-            public long rewritedCnt      = 0;
-            public long cntToRewrite     = 0;
+            public long rewritedCnt       = 0;
+            public long cntToRewrite      = 0;
 
-            public int  showProgressFlag = 0;
-            public int  slowDownFlag     = 0;
+            public int  showProgressFlag  = 0;
+            public int  slowDownFlag      = 0;
+            public int  createDirectories = 0;
+            public int  createWithSimpleDeleting = 0;
 
             public DateTime lastMessage  = DateTime.MinValue;
             public DateTime creationTime = DateTime.Now;
@@ -53,7 +56,7 @@ namespace sdel
             public string progressStr => progress.ToString("F2") + "%    ";
 
             public uint IntervalToMessageInSeconds = 1;
-            public void showMessage()
+            public void showMessage(string endOfMsg = "", bool notPrintProgress = false)
             {
                 if (showProgressFlag == 0)
                     return;
@@ -66,8 +69,12 @@ namespace sdel
 
                 Console.CursorLeft = 0;
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(progressStr);
+                if (notPrintProgress)
+                    Console.Write(endOfMsg);
+                else
+                    Console.Write(progressStr + " " + endOfMsg);
                 Console.ResetColor();
+                Console.CursorVisible = false;
             }
             
             public string getMessageForEntireTimeOfSanitization
@@ -92,8 +99,11 @@ namespace sdel
             // args = new string[] { "-", "/inRam/Renpy/" };
             // args = new string[] { "vvprsl", "/Arcs/toErase" };
             // args = new string[] { "vvpr", "/Arcs/toErase" };
+            args = new string[] { "vv_pr_crd", "/inRam/1" };
             #endif
 
+
+            Console.CursorVisible = true;
             if (args.Length < 2)
             {
                 Console.Error.WriteLine("sdel dir");
@@ -106,12 +116,17 @@ namespace sdel
                 Console.WriteLine("flag 'z2' switches to twice rewriting. 0x55AA and 0x00 patterns");
                 Console.WriteLine("flag 'z3' switches to three rewriting. 0xCCCC, 0x6666, 0x00 patterns");
                 Console.WriteLine("flag 'pr' show progress");
-                Console.WriteLine("flag 'sl' get slow down progress (small disk usage)");
+                Console.WriteLine("flag 'sl' get slow down progress (pauses when using the disk)");
+                Console.WriteLine("flag 'cr' set to creation mode. A not existence file must be created as big as possible");
+                Console.WriteLine("flag 'crd' set to creation mode with create a many count of directories");
+                Console.WriteLine("flag 'crds' or 'crs' set to the creation mode with a one time to write at the creation file moment");
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
+                Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
                 return 101;
             }
 
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 
             var path  = args[1];
             var flags = args[0];
@@ -135,6 +150,36 @@ namespace sdel
             else
             if (flags.Contains("z3"))
                 zFlag = 3;
+
+            var creationMode = flags.Contains("cr");
+            if (creationMode)
+            {
+                if (flags.Contains("sl"))
+                    progress.slowDownFlag = 1;
+                if (flags.Contains("pr"))
+                    progress.showProgressFlag = 1;
+                if (flags.Contains("crd"))
+                    progress.createDirectories = 1;
+                if (flags.Contains("crs") || flags.Contains("crds") || flags.Contains("crsd"))
+                    progress.createWithSimpleDeleting = 1;
+
+                if (!createFile(path, progress: progress, verbose: verbose))
+                {
+                    Console.CursorVisible = true;
+                    return 111;
+                }
+
+                if (progress.createWithSimpleDeleting > 0)
+                {
+                    if (verbose > 0)
+                    Console.WriteLine($"Usually directory deleting (without additional rewriting)");
+
+                    Directory.Delete(path, true);
+                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory {path}");
+
+                    return 0;
+                }
+            }
 
             var isDirectory = false;
             if (Directory.Exists(path))
@@ -181,19 +226,23 @@ namespace sdel
                 var fi = new FileInfo(path);
                 if (flags.Contains("pr"))
                 {
+                    var dt   = progress.creationTime;
                     progress = new Progress(SizeToRewrite: fi.Length, cntToRewrite: 1);
+
+                    progress.creationTime = dt;
                 }
 
                 if (flags.Contains("sl"))
                     progress.slowDownFlag = 1;
 
-                deleteFile(fi, bt, true, true, progress: progress, verbose: verbose);
+                deleteFile(fi, bt, progress: progress, true, true, verbose: verbose);
 
                 if (File.Exists(path))
                     Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion failed for file {path}");
                 else
                     Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for file {path}");
 
+                Console.CursorVisible = true;
                 return 0;
             }
 
@@ -203,11 +252,14 @@ namespace sdel
             }
 
             var di   = new DirectoryInfo(path);
-            var list = di.EnumerateFiles("*", SearchOption.AllDirectories);
+            var list = di.GetFiles("*", SearchOption.AllDirectories);
 
             if (flags.Contains("pr"))
             {
-                progress    = new Progress();
+                var dt   = progress.creationTime;
+                progress = new Progress();
+                progress.creationTime = dt;
+
                 foreach (var file in list)
                 {
                     progress.cntToRewrite  += 1;
@@ -231,13 +283,15 @@ namespace sdel
 
             foreach (var file in list)
             {
-                deleteFile(file, bt, true, progress: progress, verbose: verbose);
+                deleteFile(file, bt, progress: progress, true, verbose: verbose);
             }
 
             di.Refresh();
             var checkList = di.GetFiles();
             if (checkList.Length > 0)
             {
+                Console.CursorVisible = true;
+
                 Console.Error.WriteLine("Files is not deleted. Some files wich not has been deleted:");
                 var cnt = 0;
                 foreach (var fileInfo in checkList)
@@ -254,7 +308,8 @@ namespace sdel
             }
 
             deleteDir(di, progress: progress, verbose: verbose);
-            
+
+            Console.CursorVisible = true;            
             di.Refresh();
             if (di.Exists)
             {
@@ -270,6 +325,170 @@ namespace sdel
             return 0;
         }
 
+        private static bool createFile(string path, Progress progress, int verbose)
+        {
+            var bt1 = new byte[BufferSize];
+            // var A   = new byte[] { 0x92, 0x49 };
+            for (int i = 0; i < bt1.Length; i++)
+            {
+                bt1[i] = 0;
+            }
+
+            // if (verbose > 0)
+            Console.WriteLine($"Try to create file {path}");
+            
+            if (Directory.Exists(path) || File.Exists(path))
+            {
+                Console.WriteLine($"File creation failed for file {path}. Program terminated");
+
+                return false;
+            }
+            
+            var dir = new DirectoryInfo(path);
+            dir.Create();
+
+            var mainFileName = " ";
+            var mainFile     = new FileInfo(Path.Combine(dir.FullName, mainFileName));
+            
+            DateTime now, dt = DateTime.MinValue;
+            TimeSpan ts;
+
+            FileStream fs = null;
+            try
+            {
+                fs = new FileStream(mainFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough);
+
+                if (progress.slowDownFlag > 0)
+                    dt = DateTime.Now;
+
+                long offset = 0;
+                fs.Seek(0, SeekOrigin.Begin);
+                int  lenToWrite = bt1.Length;
+
+                var cntOneBytes = 0;
+                while (cntOneBytes < 16)
+                {
+                    var cnt = lenToWrite;
+
+                    try
+                    {
+                        fs.Write(bt1, 0, (int) cnt);
+                        offset += cnt;
+
+                        fs.Flush();
+
+                        var sz = offset/1024/1024;
+                        progress.showMessage($"Creation file, Mb: {sz.ToString("#,#")}", true);
+                    }
+                    catch
+                    {
+                        if (lenToWrite == 1)
+                        {
+                            cntOneBytes++;
+
+                            progress.showMessage($"for creation: try to expand file with 1 bytes, count of tries: {cntOneBytes}", true);
+                            Thread.Sleep(500);      // Вдруг ещё место сейчас освободится? Чуть ждём.
+
+                            dt = DateTime.Now;
+                        }
+
+                        lenToWrite >>= 1;
+                        if (lenToWrite < 1)
+                            lenToWrite = 1;
+                    }
+
+                    if (progress.slowDownFlag > 0)
+                    {
+                        now = DateTime.Now;
+                        ts  = now - dt;
+
+                        if (ts.TotalMilliseconds <= MinTimeToSleepInMs)
+                            continue;
+
+                        Thread.Sleep((int) ts.TotalMilliseconds);
+                        dt = DateTime.Now;
+                    }
+                }
+            }
+            catch
+            { }
+            finally
+            {
+                try
+                {
+                    fs.Close();
+                }
+                catch
+                { }
+            }
+            
+
+            // label1:
+
+            Console.Clear();
+
+            var sb  = new StringBuilder();
+            int len = 1024;
+            var rnd = new Random();
+            var cc  = 0;
+
+            dt = DateTime.MinValue;
+
+            if (progress.slowDownFlag > 0)
+                dt = DateTime.Now;
+
+            int ms;
+
+            if (progress.createDirectories > 0)
+            while (len > 0)
+            {
+                now = DateTime.Now;
+                if (progress.slowDownFlag > 0)
+                {
+                    ms = (int) (now - dt).TotalMilliseconds;
+                    if (ms >= MinTimeToSleepInMs)
+                    {
+                        Thread.Sleep(ms);
+                        dt = now;
+                    }
+                }
+
+                sb.Clear();
+                progress.showMessage($"(try to create a big count of directories, count of tries: {cc})", true);
+
+                for (int i = 0; i < len; i++)
+                {
+                    var n = rnd.Next(0, 10);
+                    var c = (char) (n + '0');
+                    sb.Append(c);
+                }
+
+                var sbName = sb.ToString();
+
+                do
+                {
+                    try
+                    {
+                        dir.CreateSubdirectory(sbName);
+                        cc++;
+                        break;
+                    }
+                    catch
+                    {
+                        sbName = sbName.Substring(startIndex: 0, length: sbName.Length - 1);
+                        len--;
+
+                        if (sbName.Length <= 0)
+                            break;
+                    }
+                }
+                while (true);
+            }
+
+            Console.WriteLine();        // Перевод строки после progress.showMessage
+            return true;
+        }
+
         /// <summary>Инициализирует массив одним и тем же значением на весь массив</summary>
         /// <param name="bt">Список для добавления массива</param>
         /// <param name="pattern">Шаблон заполнения</param>
@@ -283,7 +502,7 @@ namespace sdel
             bt.Add(bt0);
         }
 
-        private static void deleteDir(DirectoryInfo dir, Progress progress = null, int verbose = 0)
+        private static void deleteDir(DirectoryInfo dir, Progress progress, int verbose = 0)
         {
             var oldDirName = dir.FullName;
 
@@ -317,7 +536,7 @@ namespace sdel
             var dirList = dir.GetDirectories();
             foreach (var di in dirList)
             {
-                deleteDir(di, verbose: verbose);
+                deleteDir(di, progress: progress, verbose: verbose);
             }
 
             Directory.Delete(newFileName);
@@ -331,7 +550,7 @@ namespace sdel
             progress.showMessage();
         }
 
-        private static void deleteFile(FileInfo file, List<byte[]> bt, bool rename = true, bool onlyOne = false, Progress progress = null, int verbose = 0)
+        private static void deleteFile(FileInfo file, List<byte[]> bt, Progress progress, bool rename = true, bool onlyOne = false, int verbose = 0)
         {
             var oldFileName = file.FullName;
 
@@ -371,10 +590,12 @@ namespace sdel
                                 now = DateTime.Now;
                                 ts  = now - dt;
 
-                                if (ts.TotalMilliseconds <= MinTimeToSleepInMs)
-                                    continue;
+                                var ms = (int) ts.TotalMilliseconds;
+                                if (ms <= MinTimeToSleepInMs)
+                                    //continue;
+                                    ms = MinTimeToSleepInMs;
 
-                                Thread.Sleep((int) ts.TotalMilliseconds);
+                                Thread.Sleep(ms);
                                 dt = DateTime.Now;
                             }
                         }
@@ -426,6 +647,9 @@ namespace sdel
                     sb.Clear();
 
                     newFileName = Path.Combine(file.DirectoryName, fn);
+                    if (newFileName == oldFileName)
+                        continue;
+
                     if (File.Exists(newFileName) || Directory.Exists(newFileName))
                     {
                         if (onlyOne)
@@ -436,7 +660,7 @@ namespace sdel
                             continue;
                         }
 
-                        deleteFile(new FileInfo(newFileName), bt, false);
+                        deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
                     }
     
                     file.MoveTo(newFileName);

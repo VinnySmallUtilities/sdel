@@ -1,9 +1,27 @@
 ﻿Русский ниже
 
 # English
+For Linux require to install Mono https://www.mono-project.com/
+
 The program erase the file (directory) with a single rewriting (data sanitization) of the data in it.
 
 A simple file overwrite is used through the OS functions, do not expect anything special or complex.
+
+Flags are entered in a non-standard way. For example:
+
+sdel vvz2pr /home/user/.wine
+
+These are the flags vv, z2, pr
+
+
+The same flags can be entered as
+
+sdel vv_z2_pr /home/user/.wine
+
+
+Running without flags
+
+sdel - /home/user/.wine
 
 
 The file is deleted as follows:
@@ -33,9 +51,88 @@ The file is deleted as follows:
 6) The file is deleted by the usual means of the OS
 
 
+flag 'v' switches to verbosive mode
+
+flag 'vv' switches to twice verbosive mode
+
+flag 'pr' do show progress
+
+flag 'sl' get slow down progress (pauses when using the disk)
+
+flag 'cr' set to creation mode. A not existence file must be created as big as possible
+
+flag 'crd' set to creation mode with create a many count of directories.
+To clean up the inode, it is better to use other solutions, for example, "sfill -fllvzi /" from the "secure-delete" package
+
+"crs" or "crds" set to creation mode without additional file overwriting.
+
+"cr" creates a file with the pattern 0x00 (zero). Then the program directs the file to wipe as if the program would have been called to wipe file.
+This means that the empty space on the disk is first filled with zeros and then re-filled again with the usual pattern.
+
+For "crs" the file is created with the template 0x00. And then it just gets deleted. Thus, wiping is carried out only once.
+
+
+## Usage examples
+
+Overwriting the swap file if it is located at /swapfile
+
+sdel prv /swapfile
+
+
+If you want to overwrite the file with zeros, use the "z" flag
+
+sdel z_prv /swapfile
+
+
+Overwriting on a hard disk (magnetic disk, no for hybrid and no for SSD) can be done once.
+Overwriting a file on hybrids and SSD (and flash memory) is useless, since the writing goes to other memory cells.
+Such a one-time overwrite will prevent the file from being restored only programmatically,
+but if there is equipment for physical connection to the microcontroller, then the file will be restored.
+
+
+Overwriting an empty space on a hard (magnetic) disk.
+
+sdel crds_prv_sl ~/_toErase
+
+
+After such a rewrite, it is recommended to clear the inode. This can be done by the sfill program mentioned above.
+"sl" will slow down the overwriting, since it will insert pauses. This will avoid significantly slowing down for other programs.
+"~/_toErase" is a non-existent directory that will be created by the program. It should be located on the disk that we want to overwrite.
+
+
+Overwriting an empty space on an SSD or flash drive (the essence is the same only in different cases).
+
+sudo sdel crd_prv_sl ~/_toErase
+
+The explanations are similar to those given above. Inode cleanup using sfill is also required.
+
+Pressing ctrl+c will cause a stop the program. You can to delete the created files manually.
+
+
+
+
 # Русский
+На Linux требует установленной Mono https://www.mono-project.com/
+
 Программа удаляет файл (папку) с однократным перезатированием данных в нём.
 Используется простая перезапись файла через функции ОС, не ждите ничего особенного.
+
+Флаги вводятся нестандартным образом. Например:
+
+sdel vvz2pr /home/user/.wine
+
+Это флаги vv, z2, pr
+
+
+Эти же флаги можно ввести как
+
+sdel vv_z2_pr /home/user/.wine
+
+
+Запуск без флагов
+
+sdel - /home/user/.wine
+
 
 Удаление файла происходит следующим образом:
 1) Перезатирается каждый байт файла, но не далее его конца (например, файл, длиной 24 байта, перезатрётся 24-мя байтами)
@@ -60,3 +157,59 @@ The file is deleted as follows:
 4) Файл переименовывается. Символы имени файла однократно перезатираются пробелами с той же длиной. Например, файл "a.txt" будет переименован в имя, состоящее из пяти пробелов
 5) Файл переоткрывается с флагом File.truncate. То есть при открытии файла, ОС обрежет этот файл до нулевого размера (тяжелее будет понять, сколько весил файл)
 6) Файл удаляется обычыми средствами ОС
+
+Флаг "v" включает разговорчивый режим. "vv" удваивает разговорчивость.
+
+Флаг "pr" показывает прогресс перезаписи
+
+Флаг "sl" вставляет паузы в работу с диском. Иногда это позволяет избежать фатального замедления остальных программ
+
+Флаг "cr" указывает программе создать большой файл. Программа создаст директорию с именем, указанным как параметр.
+
+"crd" дополнительно создаст в указанной директории множество поддиректорий, чтобы лучше перезаписать пустое пространство на диске.
+Для очистки inode лучше использовать другие решения, например "sfill -fllvzi /" из пакета "secure-delete"
+
+"crs" или "crds" создаст режим без дополнительной перезаписи файла.
+
+"cr" создаёт файл с шаблоном 0x00 (ноль). Потом направляет его на перезатирание так, как если бы программа была бы вызвана для его перезатирания.
+Это означает, что пустое пространство на диске сначала перезатирается нулями и потом перезатирается ещё раз обычным шаблоном.
+
+Для "crs" файл создаётся с шаблоном 0x00. И потом просто удаляется. Таким образом перезатирание осуществляется только однократно.
+
+
+## Примеры использования
+
+Перезапись файла подкачки, если он расположен по адресу /swapfile
+
+sdel prv /swapfile
+
+
+Если вы хотите перезаписать файл нулями, используйте флаг "z"
+
+sdel z_prv /swapfile
+
+
+Перезапись на жёстком диске (магнитном диске, не гибриде и не SSD) может производиться только один раз.
+Перезапись файла на гибридах и SSD (и флеш-памяти) бесполезна, так как запись идёт в другие ячейки памяти.
+Такая однократная перезапись предотвратит восстановление файла только программным способом,
+но если имеется оборудование для физического подключения к микроконтроллеру, то файл удастся восстановить.
+
+
+Перезапись пустого места на жёстком (магнитном) диске.
+
+sdel crds_prv_sl ~/_toErase
+
+После такой перезаписи рекомендуется очистить inode. Это можно сделать упомянутой выше программой sfill.
+"sl" замедлит перезапись, так как будет вставлять паузы. Это позволит избежать существенного замедления других программ.
+"~/_toErase" - это несуществующая директория, которая будет создана программой. Она должна быть расположена на том диске, который мы хотим перезаписать.
+
+
+Перезапись пустого места на SSD или флеш-накопителе (суть одно и то же только в разных корпусах).
+
+sudo sdel crd_prv_sl ~/_toErase
+
+Разъяснения аналогичны приведённым выше. Также требуется очистка inode с помощью sfill.
+
+
+Нажатие ctrl+c прекращает работу программы. Удалите созданные файлы вручную.
+
