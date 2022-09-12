@@ -18,6 +18,8 @@ The same flags can be entered as
 
 sdel vv_z2_pr /home/user/.wine
 
+sdel "vv z2 pr" /home/user/.wine
+
 
 Running without flags
 
@@ -129,6 +131,8 @@ sdel vvz2pr /home/user/.wine
 Эти же флаги можно ввести как
 
 sdel vv_z2_pr /home/user/.wine
+
+sdel "vv z2 pr" /home/user/.wine
 
 
 Запуск без флагов
