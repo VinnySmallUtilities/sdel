@@ -24,7 +24,8 @@ namespace sdel
             public int  showProgressFlag = 0;
             public int  slowDownFlag     = 0;
 
-            public DateTime lastMessage = DateTime.MinValue;
+            public DateTime lastMessage  = DateTime.MinValue;
+            public DateTime creationTime = DateTime.Now;
 
 
             /// <summary>Создаёт объект, отображающий прогресс выполнения</summary>
@@ -68,9 +69,17 @@ namespace sdel
                 Console.Write(progressStr);
                 Console.ResetColor();
             }
+            
+            public string getMessageForEntireTimeOfSanitization
+            {
+                get
+                {
+                    var ts = DateTime.Now - creationTime;
+                    return ts.ToString();
+                }
+            }
         }
         
-        // const int BufferSize = 16 * 1024 * 1024;
         const int BufferSize = 16 * 1024 * 1024;
 
         public static int Main(string[] args)
@@ -80,7 +89,7 @@ namespace sdel
             // args = new string[] { "z3", "/inRam/1.txt" };
             // args = new string[] { "vvslpr", "/inRam/1/" };
             // args = new string[] { "-", "/inRam/Renpy/" };
-            // args = new string[] { "vvslpr", "/Arcs/toErase" };
+            args = new string[] { "vvslpr", "/Arcs/toErase" };
             #endif
 
             if (args.Length < 2)
@@ -179,9 +188,9 @@ namespace sdel
                 deleteFile(fi, bt, true, true, progress: progress, verbose: verbose);
 
                 if (File.Exists(path))
-                    Console.WriteLine($"Program ended. Deletion failed for file {path}");
+                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion failed for file {path}");
                 else
-                    Console.WriteLine($"Program ended. Deletion successfull ended for file {path}");
+                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for file {path}");
 
                 return 0;
             }
@@ -247,13 +256,13 @@ namespace sdel
             di.Refresh();
             if (di.Exists)
             {
-                Console.WriteLine("Deletion failed");
+                Console.WriteLine($"Deletion failed for directory {path}. Program ended with time {progress.getMessageForEntireTimeOfSanitization}.");
                 return 12;
             }
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.WriteLine($"Program ended. Deletion successfull ended for directory {path}");
+            Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory {path}");
             Console.WriteLine();
 
             return 0;
@@ -264,7 +273,7 @@ namespace sdel
         /// <param name="pattern">Шаблон заполнения</param>
         private static void ArrayInitialization(List<byte[]> bt, byte pattern)
         {
-            var bt0 = new byte[16 * 1024 * 1024];
+            var bt0 = new byte[BufferSize];
             for (int i = 0; i < bt0.Length; i++)
             {
                 bt0[i] = pattern;
@@ -333,6 +342,9 @@ namespace sdel
                 TimeSpan ts;
                 using (var fs = file.OpenWrite())
                 {
+                    if (progress.slowDownFlag > 0)
+                        dt = DateTime.Now;
+
                     long offset = 0;
                     foreach (var bt0 in bt)
                     {
@@ -340,9 +352,6 @@ namespace sdel
 
                         while (offset < file.Length)
                         {
-                            if (progress.slowDownFlag > 0)
-                                dt = DateTime.Now;
-
                             var cnt = file.Length - offset;
                             if (cnt > bt0.Length)
                                 cnt = bt0.Length;
@@ -359,7 +368,11 @@ namespace sdel
                                 now = DateTime.Now;
                                 ts  = now - dt;
 
+                                if (ts.TotalMilliseconds <= 50)
+                                    continue;
+
                                 Thread.Sleep((int) ts.TotalMilliseconds);
+                                dt = DateTime.Now;
                             }
                         }
                     }
@@ -371,6 +384,7 @@ namespace sdel
                         {
                             fs.Seek(offset, SeekOrigin.Begin);
     
+                            // Выравниваем на границу 64 кб
                             var c = offset & 65535;
                             if (c != 0)
                             {
