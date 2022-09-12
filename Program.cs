@@ -80,7 +80,8 @@ namespace sdel
             }
         }
         
-        const int BufferSize = 16 * 1024 * 1024;
+        const int BufferSize         = 16 * 1024 * 1024;
+        const int MinTimeToSleepInMs = 50;
 
         public static int Main(string[] args)
         {
@@ -89,7 +90,8 @@ namespace sdel
             // args = new string[] { "z3", "/inRam/1.txt" };
             // args = new string[] { "vvslpr", "/inRam/1/" };
             // args = new string[] { "-", "/inRam/Renpy/" };
-            args = new string[] { "vvslpr", "/Arcs/toErase" };
+            // args = new string[] { "vvprsl", "/Arcs/toErase" };
+            // args = new string[] { "vvpr", "/Arcs/toErase" };
             #endif
 
             if (args.Length < 2)
@@ -340,7 +342,8 @@ namespace sdel
             {
                 DateTime now, dt = DateTime.MinValue;
                 TimeSpan ts;
-                using (var fs = file.OpenWrite())
+
+                using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough))
                 {
                     if (progress.slowDownFlag > 0)
                         dt = DateTime.Now;
@@ -368,7 +371,7 @@ namespace sdel
                                 now = DateTime.Now;
                                 ts  = now - dt;
 
-                                if (ts.TotalMilliseconds <= 50)
+                                if (ts.TotalMilliseconds <= MinTimeToSleepInMs)
                                     continue;
 
                                 Thread.Sleep((int) ts.TotalMilliseconds);
