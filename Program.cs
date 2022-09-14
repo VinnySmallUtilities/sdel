@@ -190,7 +190,7 @@ namespace sdel
                 if (flags.Contains("crs") || flags.Contains("crds") || flags.Contains("crsd"))
                 {
                     progress.createWithSimpleDeleting = 1;
-                    Console.WriteLine("cr?s - creation mode withoud the file wiping (only create)");
+                    Console.WriteLine("cr?s - creation mode without the file wiping (only create and fill)");
                 }
 
                 if (!createFile(path, progress: progress, verbose: verbose))
