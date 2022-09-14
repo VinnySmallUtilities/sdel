@@ -131,6 +131,8 @@ namespace sdel
                 Console.WriteLine("sdel 'crds pr v sl' ~/_toErase");
                 Console.WriteLine("for file");
                 Console.WriteLine("sdel 'pr v' ~/_toErase");
+                Console.WriteLine("for directory");
+                Console.WriteLine("sdel 'pr v sl' ~/_toErase");
                 return 101;
             }
 
