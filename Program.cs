@@ -56,13 +56,13 @@ namespace sdel
             public string progressStr => progress.ToString("F2") + "%    ";
 
             public uint IntervalToMessageInSeconds = 1;
-            public void showMessage(string endOfMsg = "", bool notPrintProgress = false)
+            public void showMessage(string endOfMsg = "", bool notPrintProgress = false, bool forced = false)
             {
                 if (showProgressFlag == 0)
                     return;
 
                 var now = DateTime.Now;
-                if ((now - lastMessage).TotalSeconds < IntervalToMessageInSeconds)
+                if (!forced && (now - lastMessage).TotalSeconds < IntervalToMessageInSeconds)
                     return;
 
                 lastMessage = now;
@@ -99,7 +99,7 @@ namespace sdel
             // args = new string[] { "-", "/inRam/Renpy/" };
             // args = new string[] { "vvprsl", "/Arcs/toErase" };
             // args = new string[] { "vvpr", "/Arcs/toErase" };
-            args = new string[] { "vv_pr_crd", "/inRam/1" };
+            // args = new string[] { "vv_pr_crds", "/inRam/1" };
             #endif
 
 
@@ -423,7 +423,12 @@ namespace sdel
                             cntOneBytes++;
                             
                             if (cntOneBytes == 1)
+                            {
+                                var sz = offset/1024/1024;
+                                progress.showMessage($"Creation file, Mb: {sz.ToString("#,#")}", true, forced: true);
+
                                 Console.WriteLine();    // Это чтобы был виден прогресс, чтобы его не перезатереть нижеследующим сообщением
+                            }
 
                             progress.showMessage($"for creation: try to expand file with 1 bytes, count of tries: {cntOneBytes}", true);
                             Thread.Sleep(500);      // Вдруг ещё место сейчас освободится? Чуть ждём.
@@ -478,9 +483,16 @@ namespace sdel
 
             int ms;
 
+            List<DirectoryInfo> diList = new List<DirectoryInfo>();
+            diList.Add(dir);
+            var index  = 0;
+            var lastcc = index;
+
             if (progress.createDirectories > 0)
             while (len > 0)
             {
+                dir = diList[index];
+
                 now = DateTime.Now;
                 if (progress.slowDownFlag > 0)
                 {
@@ -493,7 +505,7 @@ namespace sdel
                 }
 
                 sb.Clear();
-                progress.showMessage($"(try to create a big count of directories, count of tries: {cc})", true);
+                progress.showMessage($"(try to create a big count of directories, count of tries: {cc}, {lastcc})", true, forced: lastcc > 0);
 
                 for (int i = 0; i < len; i++)
                 {
@@ -508,17 +520,48 @@ namespace sdel
                 {
                     try
                     {
-                        dir.CreateSubdirectory(sbName);
+                        var newDir = dir.CreateSubdirectory(sbName);
                         cc++;
+                        lastcc = index;
+
+                        diList.Add(newDir);
                         break;
                     }
                     catch
                     {
-                        sbName = sbName.Substring(startIndex: 0, length: sbName.Length - 1);
-                        len--;
+                        if (index <= 1)
+                            len--;
+                        else
+                            len >>= 1;
 
-                        if (sbName.Length <= 0)
+                        sbName = sbName.Substring(startIndex: 0, length: len);
+
+                        if (sbName.Length <= 0 || len <= 0)
+                        {
+                            // Выходим, если не создано ни одной директории в главной директории
+                            if (cc == 0)
+                            {
+                                len = 0;
+                                break;
+                            }
+
+                            // Будем создавать директории в субдиректориях: на всякий случай. Они не создаются
+                            index++;
+                            if (index >= diList.Count)
+                            {
+                                len = 0;
+                                break;
+                            }
+
+                            if (index - lastcc > 16)
+                            {
+                                len = 0;
+                                break;
+                            }
+
+                            len = 1024;
                             break;
+                        }
                     }
                 }
                 while (true);
