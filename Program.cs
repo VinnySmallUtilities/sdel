@@ -123,6 +123,14 @@ namespace sdel
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
                 Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
+                Console.WriteLine("sdel 'vv z2 pr' /home/user/.wine");
+                Console.WriteLine("sdel \"vv z2 pr\" /home/user/.wine");
+                Console.WriteLine("for SSD and flash");
+                Console.WriteLine("sdel 'crd pr v sl' ~/_toErase");
+                Console.WriteLine("for magnetic disks");
+                Console.WriteLine("sdel 'crds pr v sl' ~/_toErase");
+                Console.WriteLine("for file");
+                Console.WriteLine("sdel 'pr v' ~/_toErase");
                 return 101;
             }
 
@@ -146,22 +154,42 @@ namespace sdel
 
             var zFlag = flags.Contains("z") ? 1 : 0;
             if (flags.Contains("z2"))
+            {
                 zFlag = 2;
+
+                if (verbose > 0)
+                Console.WriteLine("z2: double rewrite: 0x55AA and 0x0000");
+            }
             else
             if (flags.Contains("z3"))
+            {
                 zFlag = 3;
+                
+                if (verbose > 0)
+                Console.WriteLine("z3: triple rewrite: 0xCCCC 0x6666 0x00");
+            }
 
             var creationMode = flags.Contains("cr");
             if (creationMode)
             {
+                if (verbose > 0)
+                Console.WriteLine("cr* - creation mode");
+
                 if (flags.Contains("sl"))
+                {
                     progress.slowDownFlag = 1;
+                    Console.WriteLine("sl - slow down");
+                }
+
                 if (flags.Contains("pr"))
                     progress.showProgressFlag = 1;
                 if (flags.Contains("crd"))
                     progress.createDirectories = 1;
                 if (flags.Contains("crs") || flags.Contains("crds") || flags.Contains("crsd"))
+                {
                     progress.createWithSimpleDeleting = 1;
+                    Console.WriteLine("cr?s - creation mode withoud the file wiping (only create)");
+                }
 
                 if (!createFile(path, progress: progress, verbose: verbose))
                 {
@@ -233,7 +261,10 @@ namespace sdel
                 }
 
                 if (flags.Contains("sl"))
+                {
                     progress.slowDownFlag = 1;
+                    Console.WriteLine("sl - slow down");
+                }
 
                 deleteFile(fi, bt, progress: progress, true, true, verbose: verbose);
 
@@ -279,7 +310,10 @@ namespace sdel
             }
 
             if (flags.Contains("sl"))
+            {
                 progress.slowDownFlag = 1;
+                Console.WriteLine("sl - slow down");
+            }
 
             foreach (var file in list)
             {
@@ -385,6 +419,9 @@ namespace sdel
                         if (lenToWrite == 1)
                         {
                             cntOneBytes++;
+                            
+                            if (cntOneBytes == 1)
+                                Console.WriteLine();    // Это чтобы был виден прогресс, чтобы его не перезатереть нижеследующим сообщением
 
                             progress.showMessage($"for creation: try to expand file with 1 bytes, count of tries: {cntOneBytes}", true);
                             Thread.Sleep(500);      // Вдруг ещё место сейчас освободится? Чуть ждём.
@@ -425,7 +462,7 @@ namespace sdel
 
             // label1:
 
-            Console.Clear();
+            Console.WriteLine();
 
             var sb  = new StringBuilder();
             int len = 1024;
