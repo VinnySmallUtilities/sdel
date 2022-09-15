@@ -26,6 +26,7 @@ namespace sdel
             public int  slowDownFlag      = 0;
             public int  createDirectories = 0;
             public int  createWithSimpleDeleting = 0;
+            public int  createDirectoriesOnly    = 0;
 
             public DateTime lastMessage  = DateTime.MinValue;
             public DateTime creationTime = DateTime.Now;
@@ -100,6 +101,7 @@ namespace sdel
             // args = new string[] { "vvprsl", "/Arcs/toErase" };
             // args = new string[] { "vvpr", "/Arcs/toErase" };
             // args = new string[] { "vv_pr_crds", "/inRam/1" };
+            args = new string[] { "'v pr crf'", "/home/vinny/_toErase" };
             #endif
 
 
@@ -120,6 +122,7 @@ namespace sdel
                 Console.WriteLine("flag 'cr' set to creation mode. A not existence file must be created as big as possible");
                 Console.WriteLine("flag 'crd' set to creation mode with create a many count of directories");
                 Console.WriteLine("flag 'crds' or 'crs' set to the creation mode with a one time to write at the creation file moment");
+                Console.WriteLine("flag 'crf' set to the creation mode for create directories only");
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
                 Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
@@ -191,6 +194,13 @@ namespace sdel
                 {
                     progress.createWithSimpleDeleting = 1;
                     Console.WriteLine("cr?s - creation mode without the file wiping (only create and fill)");
+                }
+                if (flags.Contains("crf"))
+                {
+                    progress.createDirectories     = 1;
+                    progress.createDirectoriesOnly = 1;
+                    if (verbose > 0)
+                    Console.WriteLine($"crf - Only directories created, no have big file");
                 }
 
                 if (!createFile(path, progress: progress, verbose: verbose))
@@ -371,11 +381,11 @@ namespace sdel
             }
 
             // if (verbose > 0)
-            Console.WriteLine($"Try to create file {path}");
+            Console.WriteLine($"Try to create directory {path}");
             
             if (Directory.Exists(path) || File.Exists(path))
             {
-                Console.WriteLine($"File creation failed for file {path}. Program terminated");
+                Console.WriteLine($"Directory creation failed for path {path} (directory or file already exists). Program terminated");
 
                 return false;
             }
@@ -390,6 +400,7 @@ namespace sdel
             TimeSpan ts;
 
             FileStream fs = null;
+            if (progress.createDirectoriesOnly <= 0)
             try
             {
                 fs = new FileStream(mainFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough);
@@ -567,6 +578,7 @@ namespace sdel
                 while (true);
             }
 
+            Thread.Sleep(500);
             Console.WriteLine();        // Перевод строки после progress.showMessage
             return true;
         }

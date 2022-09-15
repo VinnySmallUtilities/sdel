@@ -48,7 +48,7 @@ The file is deleted as follows:
 3) The file size is expanded to a multiple of 65536 bytes (0x10000) by the same pattern
     If the wiping occurs several times, then the wiping of additional space occurs after all times of the wiping of the entire file has been completed.
 4) The file is renamed. The characters of the file name are replaced with spaces with the same length.
-    For example, the file "a.txt " will be renamed to five spaces.
+    For example, the file "a.txt " will be renamed to five spaces. Patterns are not applied, renaming is always done only once.
 5) The file is reopened with the "File.truncate" flag. That is, when opening a file, the OS will trim this file to zero size (it will be harder to understand how much the file weighed)
 6) The file is deleted by the usual means of the OS
 
@@ -65,6 +65,9 @@ flag 'cr' set to creation mode. A not existence file must be created as big as p
 
 flag 'crd' set to creation mode with create a many count of directories.
 To clean up the inode, it is better to use other solutions, for example, "sfill -fllvzi /" from the "secure-delete" package
+
+Directories are created without patterns, patterns are not applied.
+
 
 "crs" or "crds" set to creation mode without additional file overwriting.
 
@@ -160,7 +163,7 @@ sdel - /home/user/.wine
 2) Размер блока файловой системы не известен программе. Она работает на слишком высоком уровне.
 3) Размер файла дополняется до кратного 65536 байтам (0x10000) тем же шаблоном
     Если перезатирание идёт несколько раз, то перезатирание дополнительного пространства идёт уже после того, как выполнены все перезатирания всего файла.
-4) Файл переименовывается. Символы имени файла однократно перезатираются пробелами с той же длиной. Например, файл "a.txt" будет переименован в имя, состоящее из пяти пробелов
+4) Файл переименовывается. Символы имени файла однократно перезатираются пробелами с той же длиной. Например, файл "a.txt" будет переименован в имя, состоящее из пяти пробелов. Шаблоны не применяются, переименование всегда осуществляется только один раз.
 5) Файл переоткрывается с флагом File.truncate. То есть при открытии файла, ОС обрежет этот файл до нулевого размера (тяжелее будет понять, сколько весил файл)
 6) Файл удаляется обычыми средствами ОС
 
@@ -174,6 +177,7 @@ sdel - /home/user/.wine
 
 "crd" дополнительно создаст в указанной директории множество поддиректорий, чтобы лучше перезаписать пустое пространство на диске.
 Для очистки inode лучше использовать другие решения, например "sfill -fllvzi /" из пакета "secure-delete"
+Директории создаются с именеми "как получится", шаблоны не применяются.
 
 "crs" или "crds" создаст режим без дополнительной перезаписи файла.
 
