@@ -102,7 +102,8 @@ namespace sdel
             // args = new string[] { "vvprsl", "/Arcs/toErase" };
             // args = new string[] { "vvpr", "/Arcs/toErase" };
             // args = new string[] { "vv_pr_crds", "/inRam/1" };
-            args = new string[] { "'v pr crf'", "/home/vinny/_toErase" };
+            // args = new string[] { "vv_pr_crf", "/inRam/1" };
+            // args = new string[] { "'v pr crf'", "/home/vinny/_toErase" };
             #endif
 
 
@@ -488,7 +489,7 @@ namespace sdel
             var rnd = new Random();
             var cc  = 0;
 
-            dt = DateTime.MinValue;
+            dt  = DateTime.MinValue;
 
             if (progress.slowDownFlag > 0)
                 dt = DateTime.Now;
@@ -505,19 +506,19 @@ namespace sdel
             {
                 dir = diList[index];
 
-                now = DateTime.Now;
                 if (progress.slowDownFlag > 0)
                 {
+                    now = DateTime.Now;
                     ms = (int) (now - dt).TotalMilliseconds;
                     if (ms >= MinTimeToSleepInMs)
                     {
                         Thread.Sleep(ms);
-                        dt = now;
+                        dt = DateTime.Now;
                     }
                 }
 
                 sb.Clear();
-                progress.showMessage($"(try to create a big count of directories, count of tries: {cc}, {lastcc})", true, forced: lastcc > 0);
+                progress.showMessage($"(try to create a big count of directories, count of tries: {cc.ToString("#,#,#")}, {lastcc})", true, forced: lastcc > 0 || index > 0);
 
                 for (int i = 0; i < len; i++)
                 {
@@ -536,7 +537,10 @@ namespace sdel
                         cc++;
                         lastcc = index;
 
-                        diList.Add(newDir);
+                        // Защита от того, что мы запомним слишком много директорий
+                        if (diList.Count < 1_000_000)
+                            diList.Add(newDir);
+
                         break;
                     }
                     catch
