@@ -21,11 +21,12 @@ namespace sdel
 
             public long rewritedCnt       = 0;
             public long cntToRewrite      = 0;
-
-            public int  showProgressFlag  = 0;
-            public int  slowDownFlag      = 0;
+                                                                /// <summary>Выводить прогресс (pr)</summary>
+            public int  showProgressFlag  = 0;                  /// <summary>Замедлять работу программы, вставляя паузы (sl)</summary>
+            public int  slowDownFlag      = 0;                  /// <summary>Вместо перезатирания существующих файлов создать большой файл для перезатирания пустого пространства на диске (cr)</summary>
             public int  createDirectories = 0;
-            public int  createWithSimpleDeleting = 0;
+                                                                /// <summary>Создание файла с последующим удалением без перезатирания (crs)</summary>
+            public int  createWithSimpleDeleting = 0;           /// <summary>Создавать только директории, не создавая большого файла (crf)</summary>
             public int  createDirectoriesOnly    = 0;
 
             public DateTime lastMessage  = DateTime.MinValue;

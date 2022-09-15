@@ -76,6 +76,8 @@ This means that the empty space on the disk is first filled with zeros and then 
 
 For "crs" the file is created with the template 0x00. And then it just gets deleted. Thus, wiping is carried out only once.
 
+"crf" starts the program so that it creates only directories (a large number) without creating a large file to wipe empty space.
+
 
 ## Usage examples
 
@@ -185,6 +187,8 @@ sdel - /home/user/.wine
 Это означает, что пустое пространство на диске сначала перезатирается нулями и потом перезатирается ещё раз обычным шаблоном.
 
 Для "crs" файл создаётся с шаблоном 0x00. И потом просто удаляется. Таким образом перезатирание осуществляется только однократно.
+
+"crf" запускает программу для того, чтобы она создала только директории (большое количество) без создания большого файла для перезатирания пустгого места.
 
 
 ## Примеры использования
