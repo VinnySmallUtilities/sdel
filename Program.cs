@@ -189,7 +189,7 @@ namespace sdel
 
                 if (flags.Contains("pr"))
                     progress.showProgressFlag = 1;
-                if (flags.Contains("crd"))
+                if (flags.Contains("crd") || flags.Contains("crsd"))
                     progress.createDirectories = 1;
                 if (flags.Contains("crs") || flags.Contains("crds") || flags.Contains("crsd"))
                 {
