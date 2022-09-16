@@ -518,7 +518,7 @@ namespace sdel
                 }
 
                 sb.Clear();
-                progress.showMessage($"(try to create a big count of directories, count of tries: {cc.ToString("#,#,#")}, {lastcc})", true, forced: lastcc > 0 || index > 0);
+                progress.showMessage($"(try to create a big count of directories, count of tries: {cc.ToString("#,#,#")}, {lastcc})", true);
 
                 for (int i = 0; i < len; i++)
                 {
@@ -582,6 +582,8 @@ namespace sdel
                 }
                 while (true);
             }
+
+            progress.showMessage($"(try to create a big count of directories, count of tries: {cc.ToString("#,#,#")}, {lastcc})", true, forced: true);
 
             Thread.Sleep(500);
             Console.WriteLine();        // Перевод строки после progress.showMessage
