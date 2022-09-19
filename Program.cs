@@ -742,30 +742,38 @@ namespace sdel
                     if (ci == '*' || ci == '?' || ci == Path.DirectorySeparatorChar || ci == Path.AltDirectorySeparatorChar)
                         continue;
 
-                    sb.Clear();
-                    sb.Append(ci, fn.Length);
-                    fn = sb.ToString();
-                    sb.Clear();
-
-                    newFileName = Path.Combine(file.DirectoryName, fn);
-                    if (newFileName == oldFileName)
-                        continue;
-
-                    if (File.Exists(newFileName) || Directory.Exists(newFileName))
+                    try
                     {
-                        if (onlyOne)
-                        {
-                            if (ci == 'z')
-                                return;
-
-                            continue;
-                        }
-
-                        deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
-                    }
+                        sb.Clear();
+                        sb.Append(ci, fn.Length);
+                        fn = sb.ToString();
+                        sb.Clear();
     
-                    file.MoveTo(newFileName);
-                    break;
+                        newFileName = Path.Combine(file.DirectoryName, fn);
+                        if (newFileName == oldFileName)
+                            continue;
+    
+                        if (File.Exists(newFileName) || Directory.Exists(newFileName))
+                        {
+                            if (onlyOne)
+                            {
+                                if (ci == 'z')
+                                    return;
+    
+                                continue;
+                            }
+    
+                            deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
+                        }
+        
+                        file.MoveTo(newFileName);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        if (ci == 'z')
+                            throw e;
+                    }
                 }
             }
 
