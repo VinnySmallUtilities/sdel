@@ -219,6 +219,7 @@ namespace sdel
                     Directory.Delete(path, true);
                     Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory {path}");
 
+                    Console.CursorVisible = true;
                     return 0;
                 }
             }
@@ -233,6 +234,8 @@ namespace sdel
             if (!File.Exists(path))
             {
                 Console.Error.WriteLine($"File not exists:\n\"{path}\"");
+                
+                Console.CursorVisible = true;
                 return 102;
             }
             else
