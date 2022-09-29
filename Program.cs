@@ -104,6 +104,7 @@ namespace sdel
             // args = new string[] { "vv_pr_crds", "/inRam/1" };
             // args = new string[] { "vv_pr_crf", "/inRam/1" };
             // args = new string[] { "'v pr crf'", "/home/vinny/_toErase" };
+            args = new string[] { "'v pr crds'", "/inRam/rcd/_toErase" };
             #endif
 
 
@@ -334,7 +335,14 @@ namespace sdel
 
             foreach (var file in list)
             {
-                deleteFile(file, bt, progress: progress, true, verbose: verbose);
+                try
+                {
+                    deleteFile(file, bt, progress: progress, true, verbose: verbose);
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    Console.Error.WriteLine($"Error for file {file.FullName}\n{e.Message}\n{e.StackTrace}");
+                }
             }
 
             di.Refresh();
@@ -441,7 +449,10 @@ namespace sdel
                             if (cntOneBytes == 1)
                             {
                                 var sz = offset/1024/1024;
-                                progress.showMessage($"Creation file, Mb: {sz.ToString("#,#")}", true, forced: true);
+                                if (sz > 0)
+                                    progress.showMessage($"Creation file, Mb: {sz.ToString("#,#,#")}", true, forced: true);
+                                else
+                                    progress.showMessage($"Creation file, bytes: {offset.ToString("#,#,#")}", true, forced: true);
 
                                 Console.WriteLine();    // Это чтобы был виден прогресс, чтобы его не перезатереть нижеследующим сообщением
                             }
@@ -640,7 +651,14 @@ namespace sdel
             var dirList = dir.GetDirectories();
             foreach (var di in dirList)
             {
-                deleteDir(di, progress: progress, verbose: verbose);
+                try
+                {
+                    deleteDir(di, progress: progress, verbose: verbose);
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    Console.Error.WriteLine($"Error for dir {di.FullName}\n{e.Message}\n{e.StackTrace}");
+                }
             }
 
             Directory.Delete(newFileName);
