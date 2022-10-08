@@ -104,7 +104,8 @@ namespace sdel
             // args = new string[] { "vv_pr_crds", "/inRam/1" };
             // args = new string[] { "vv_pr_crf", "/inRam/1" };
             // args = new string[] { "'v pr crf'", "/home/vinny/_toErase" };
-            args = new string[] { "'v pr crds'", "/inRam/rcd/_toErase" };
+            // args = new string[] { "'v pr crds'", "/inRam/rcd/_toErase" };
+            // args = new string[] { "'v pr crs'", "/media/vinny/0A36-9B56/System Volume Information/_toErase" };
             #endif
 
 
@@ -144,7 +145,8 @@ namespace sdel
 
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 
-            var path  = args[1];
+            var path0 = args[1];
+            var path  = Path.GetFullPath(path0);
             var flags = args[0];
 
             var verbose = flags.Contains("v") ? 1 : 0;
@@ -406,7 +408,7 @@ namespace sdel
             var dir = new DirectoryInfo(path);
             dir.Create();
 
-            var mainFileName = " ";
+            var mainFileName = "0123456789012345";
             var mainFile     = new FileInfo(Path.Combine(dir.FullName, mainFileName));
             
             DateTime now, dt = DateTime.MinValue;
@@ -416,7 +418,14 @@ namespace sdel
             if (progress.createDirectoriesOnly <= 0)
             try
             {
-                fs = new FileStream(mainFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough);
+                try
+                {
+                    fs = new FileStream(mainFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough);
+                }
+                catch
+                {
+                    fs = new FileStream(mainFile.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1 << 16, FileOptions.None);
+                }
 
                 if (progress.slowDownFlag > 0)
                     dt = DateTime.Now;
@@ -481,8 +490,10 @@ namespace sdel
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + "\n\n" + e.StackTrace);
+            }
             finally
             {
                 try
