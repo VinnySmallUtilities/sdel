@@ -29,6 +29,8 @@ namespace sdel
             public int  createWithSimpleDeleting = 0;           /// <summary>Создавать только директории, не создавая большого файла (crf)</summary>
             public int  createDirectoriesOnly    = 0;
 
+            public int  doNotDeleteDirectories   = 0;
+
             public DateTime lastMessage  = DateTime.MinValue;
             public DateTime creationTime = DateTime.Now;
 
@@ -58,6 +60,7 @@ namespace sdel
             public string progressStr => progress.ToString("F2") + "%    ";
 
             public uint IntervalToMessageInSeconds = 1;
+
             public void showMessage(string endOfMsg = "", bool notPrintProgress = false, bool forced = false)
             {
                 if (showProgressFlag == 0)
@@ -94,7 +97,7 @@ namespace sdel
 
         public static int Main(string[] args)
         {
-            #if DEBUG
+#if DEBUG
             // args = new string[] { "v", "/home/g2/g2/.wine/" };
             // args = new string[] { "z3", "/inRam/1.txt" };
             // args = new string[] { "vvslpr", "/inRam/1/" };
@@ -106,12 +109,24 @@ namespace sdel
             // args = new string[] { "'v pr crf'", "/home/vinny/_toErase" };
             // args = new string[] { "'v pr crds'", "/inRam/rcd/_toErase" };
             // args = new string[] { "'v pr crs'", "/media/vinny/0A36-9B56/System Volume Information/_toErase" };
-            #endif
+            // args = new string[] { "'v pr crs'" };
+#endif
 
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 
             Console.CursorVisible = true;
             if (args.Length < 2)
             {
+                if (args.Length == 1 && args[0].Contains(":"))
+                {
+                    var stdIn = Console.OpenStandardInput();
+                    using var stdR = new StreamReader(stdIn);
+                    ExecuteSdels(args[0], stdR);
+
+                    Console.CursorVisible = true;
+                    return 0;
+                }
+
                 Console.Error.WriteLine("sdel dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
@@ -127,6 +142,7 @@ namespace sdel
                 Console.WriteLine("flag 'crd' set to creation mode with create a many count of directories");
                 Console.WriteLine("flag 'crds' or 'crs' set to the creation mode with a one time to write at the creation file moment");
                 Console.WriteLine("flag 'crf' set to the creation mode for create directories only");
+                Console.WriteLine("use ':' to use with conveyor. Example: ls | sdel 'v:-'");
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
                 Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
@@ -140,27 +156,16 @@ namespace sdel
                 Console.WriteLine("sdel 'pr v' ~/_toErase");
                 Console.WriteLine("for directory");
                 Console.WriteLine("sdel 'pr v sl' ~/_toErase");
+
                 return 101;
             }
 
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
+            Progress progress = new Progress(showProgressFlag: 0);
 
             var path0 = args[1];
-            var path  = Path.GetFullPath(path0);
+            var path = Path.GetFullPath(path0);
             var flags = args[0];
-
-            var verbose = flags.Contains("v") ? 1 : 0;
-            if (verbose > 0)
-            {
-                Console.WriteLine("Verbosive mode");
-            }
-            if (flags.Contains("vv"))
-            {
-                Console.WriteLine("Verbosive mode twiced");
-                verbose = 2;
-            }
-
-            Progress progress = new Progress(showProgressFlag: 0);
+            int verbose = GetVerboseFlag(flags);
 
             var zFlag = flags.Contains("z") ? 1 : 0;
             if (flags.Contains("z2"))
@@ -168,22 +173,22 @@ namespace sdel
                 zFlag = 2;
 
                 if (verbose > 0)
-                Console.WriteLine("z2: double rewrite: 0x55AA and 0x0000");
+                    Console.WriteLine("z2: double rewrite: 0x55AA and 0x0000");
             }
             else
             if (flags.Contains("z3"))
             {
                 zFlag = 3;
-                
+
                 if (verbose > 0)
-                Console.WriteLine("z3: triple rewrite: 0xCCCC 0x6666 0x00");
+                    Console.WriteLine("z3: triple rewrite: 0xCCCC 0x6666 0x00");
             }
 
             var creationMode = flags.Contains("cr");
             if (creationMode)
             {
                 if (verbose > 0)
-                Console.WriteLine("cr* - creation mode");
+                    Console.WriteLine("cr* - creation mode");
 
                 if (flags.Contains("sl"))
                 {
@@ -202,10 +207,10 @@ namespace sdel
                 }
                 if (flags.Contains("crf"))
                 {
-                    progress.createDirectories     = 1;
+                    progress.createDirectories = 1;
                     progress.createDirectoriesOnly = 1;
                     if (verbose > 0)
-                    Console.WriteLine($"crf - Only directories created, no have big file");
+                        Console.WriteLine($"crf - Only directories created, no have big file");
                 }
 
                 if (!createFile(path, progress: progress, verbose: verbose))
@@ -217,7 +222,7 @@ namespace sdel
                 if (progress.createWithSimpleDeleting > 0)
                 {
                     if (verbose > 0)
-                    Console.WriteLine($"Usually directory deleting (without additional rewriting)");
+                        Console.WriteLine($"Usually directory deleting (without additional rewriting)");
 
                     Directory.Delete(path, true);
                     Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory {path}");
@@ -237,7 +242,7 @@ namespace sdel
             if (!File.Exists(path))
             {
                 Console.Error.WriteLine($"File not exists:\n\"{path}\"");
-                
+
                 Console.CursorVisible = true;
                 return 102;
             }
@@ -259,7 +264,7 @@ namespace sdel
             }
 
             var bt1 = new byte[BufferSize];
-            var A   = new byte[] { 0x55, 0xAA };
+            var A = new byte[] { 0x55, 0xAA };
             for (int i = 0; i < bt1.Length; i++)
             {
                 if (zFlag == 0)
@@ -274,7 +279,7 @@ namespace sdel
                 var fi = new FileInfo(path);
                 if (flags.Contains("pr"))
                 {
-                    var dt   = progress.creationTime;
+                    var dt = progress.creationTime;
                     progress = new Progress(SizeToRewrite: fi.Length, cntToRewrite: 1);
 
                     progress.creationTime = dt;
@@ -302,18 +307,18 @@ namespace sdel
                 Console.WriteLine("Prepare a list of files to data sanitization");
             }
 
-            var di   = new DirectoryInfo(path);
+            var di = new DirectoryInfo(path);
             var list = di.GetFiles("*", SearchOption.AllDirectories);
 
             if (flags.Contains("pr"))
             {
-                var dt   = progress.creationTime;
+                var dt = progress.creationTime;
                 progress = new Progress();
                 progress.creationTime = dt;
 
                 foreach (var file in list)
                 {
-                    progress.cntToRewrite  += 1;
+                    progress.cntToRewrite += 1;
                     progress.SizeToRewrite += file.Length;
                 }
 
@@ -325,7 +330,7 @@ namespace sdel
                 var dirList = di.EnumerateDirectories("*", SearchOption.AllDirectories);
                 foreach (var file in list)
                 {
-                    progress.cntToRewrite  += 1;
+                    progress.cntToRewrite += 1;
                 }
             }
 
@@ -333,6 +338,12 @@ namespace sdel
             {
                 progress.slowDownFlag = 1;
                 Console.WriteLine("sl - slow down");
+            }
+
+            if (flags.Contains("ndd"))
+            {
+                progress.doNotDeleteDirectories = 1;
+                Console.WriteLine("ndd - do not delete directories");
             }
 
             foreach (var file in list)
@@ -370,12 +381,20 @@ namespace sdel
 
             deleteDir(di, progress: progress, verbose: verbose);
 
-            Console.CursorVisible = true;            
+            Console.CursorVisible = true;
             di.Refresh();
             if (di.Exists)
             {
-                Console.WriteLine($"Deletion failed for directory {path}. Program ended with time {progress.getMessageForEntireTimeOfSanitization}.");
-                return 12;
+                if (progress.doNotDeleteDirectories > 0)
+                {
+                    checkList = di.GetFiles();
+                }
+
+                if (checkList.LongLength > 0)
+                {
+                    Console.WriteLine($"Deletion failed for directory {path}. Program ended with time {progress.getMessageForEntireTimeOfSanitization}.");
+                    return 12;
+                }
             }
 
             Console.WriteLine();
@@ -384,6 +403,58 @@ namespace sdel
             Console.WriteLine();
 
             return 0;
+        }
+
+        private static int GetVerboseFlag(string flags)
+        {
+            var verbose = flags.Contains("v") ? 1 : 0;
+            if (verbose > 0)
+            {
+                Console.WriteLine("Verbosive mode");
+            }
+            if (flags.Contains("vv"))
+            {
+                Console.WriteLine("Verbosive mode twiced");
+                verbose = 2;
+            }
+
+            return verbose;
+        }
+
+        public static void ExecuteSdels(string flagsOfAll, StreamReader stdR)
+        {
+            var foa   = flagsOfAll.Split(  new char[] { ':' },   StringSplitOptions.None  );
+            var flags = foa[0];
+
+            int verbose = GetVerboseFlag(flags);
+            if (verbose > 0)
+                Console.WriteLine("Wait for std.input file names");
+
+            do
+            {
+                var line = stdR.ReadLine();
+                if (line == null)
+                    break;
+
+                var sdelName = typeof(MainClass).Assembly.Location;
+                var cmdLine = $"'{foa[1]}' '{line}'";
+                if (verbose > 0)
+                    Console.WriteLine($"Start {sdelName} {cmdLine}");
+
+                var psi = new ProcessStartInfo(sdelName, cmdLine);
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
+                using (var pi = Process.Start(psi))
+                {
+                    pi.WaitForExit();
+
+                    Console.Error.WriteLine(pi.StandardError.ReadToEnd());
+                    Console.WriteLine(pi.StandardOutput.ReadToEnd());
+                }
+            }
+            while (true);
         }
 
         private static bool createFile(string path, Progress progress, int verbose)
@@ -630,6 +701,9 @@ namespace sdel
 
         private static void deleteDir(DirectoryInfo dir, Progress progress, int verbose = 0)
         {
+            if (progress.doNotDeleteDirectories > 0)
+                return;
+
             var oldDirName = dir.FullName;
 
             if (verbose > 0)
