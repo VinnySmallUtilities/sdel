@@ -110,23 +110,64 @@ namespace sdel
             // args = new string[] { "'v pr crds'", "/inRam/rcd/_toErase" };
             // args = new string[] { "'v pr crs'", "/media/vinny/0A36-9B56/System Volume Information/_toErase" };
             // args = new string[] { "'v pr crs'" };
+            // args = new string[] { ":prv" };
 #endif
 
+            var returnCode = Main_OneArgument(args);
+
+            if (returnCode != 0)
+                return returnCode;
+
+
+            // sdel prv * добавляет новые параметры в конец
+            if (args.LongLength > 2)
+            for (long i = 2; i < args.LongLength; i++)
+            {
+                var line = args[i];
+                Console.WriteLine("\n--------------------------------\n");
+                Console.WriteLine("Try to re-executing with additional files");
+
+                try
+                {
+                    var rc = Main_OneArgument(    new string[] {  args[0], line  }    );
+    
+                    if (rc != 0 && returnCode == 0)
+                        returnCode = rc;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("ERROR: " + ex.Message + "\n" + ex.StackTrace + "\n\n\n");
+                }
+            }
+
+
+            return returnCode;
+        }
+
+        public static int Main_OneArgument(string[] args)
+        // public static int Main(string[] args)
+        {
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 
             Console.CursorVisible = true;
-            if (args.Length < 2)
+            if (args.Length == 1 && args[0].Contains(":"))
             {
-                if (args.Length == 1 && args[0].Contains(":"))
-                {
-                    var stdIn = Console.OpenStandardInput();
-                    using var stdR = new StreamReader(stdIn);
-                    ExecuteSdels(args[0], stdR);
+                var stdIn = Console.OpenStandardInput();
+                using var stdR = new StreamReader(stdIn);
+                ExecuteSdels(args[0], stdR);
 
-                    Console.CursorVisible = true;
-                    return 0;
-                }
+                Console.CursorVisible = true;
+                return 0;
+            }
 
+            bool isFirstFileError = false;
+            if (args.Length > 0)
+            {
+                isFirstFileError = File.Exists(args[0]) || Directory.Exists(args[0]);
+            }
+
+            if (args.Length < 2 || isFirstFileError)
+            {
                 Console.Error.WriteLine("sdel dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
@@ -142,7 +183,7 @@ namespace sdel
                 Console.WriteLine("flag 'crd' set to creation mode with create a many count of directories");
                 Console.WriteLine("flag 'crds' or 'crs' set to the creation mode with a one time to write at the creation file moment");
                 Console.WriteLine("flag 'crf' set to the creation mode for create directories only");
-                Console.WriteLine("use ':' to use with conveyor. Example: ls | sdel 'v:-'");
+                Console.WriteLine("use ':' to use with conveyor. Example: ls -1 | sdel 'v:-'");
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
                 Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
