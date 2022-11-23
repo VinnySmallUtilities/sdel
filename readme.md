@@ -82,7 +82,7 @@ For "crs" the file is created with the template 0x00. And then it just gets dele
 
 use ':' to use with conveyor.
 Example:
-ls | sdel 'v:-'
+ls -1 | sdel 'v:-'
 
 
 ## Usage examples
