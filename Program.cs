@@ -28,7 +28,7 @@ namespace sdel
                                                                 /// <summary>Создание файла с последующим удалением без перезатирания (crs)</summary>
             public int  createWithSimpleDeleting = 0;           /// <summary>Создавать только директории, не создавая большого файла (crf)</summary>
             public int  createDirectoriesOnly    = 0;
-
+                                                                /// <summary>Не удалять директории (только файлы, оставить структуру папок нетронутой)</summary>
             public int  doNotDeleteDirectories   = 0;
 
             public DateTime lastMessage  = DateTime.MinValue;
@@ -136,10 +136,18 @@ namespace sdel
                 }
                 catch (Exception ex)
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.Error.WriteLine("ERROR: " + ex.Message + "\n" + ex.StackTrace + "\n\n\n");
+                    Console.ResetColor();
                 }
             }
 
+            if (returnCode != 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine("Error occured");
+                Console.ResetColor();
+            }
 
             return returnCode;
         }
@@ -154,10 +162,10 @@ namespace sdel
             {
                 var stdIn = Console.OpenStandardInput();
                 using var stdR = new StreamReader(stdIn);
-                ExecuteSdels(args[0], stdR);
+                var ec = ExecuteSdels(args[0], stdR);
 
                 Console.CursorVisible = true;
-                return 0;
+                return ec;
             }
 
             bool isFirstFileError = false;
@@ -257,6 +265,9 @@ namespace sdel
                 if (!createFile(path, progress: progress, verbose: verbose))
                 {
                     Console.CursorVisible = true;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"File creation failed with name '{path}'");
+                    Console.ResetColor();
                     return 111;
                 }
 
@@ -266,7 +277,7 @@ namespace sdel
                         Console.WriteLine($"Usually directory deleting (without additional rewriting)");
 
                     Directory.Delete(path, true);
-                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory {path}");
+                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory '{path}'");
 
                     Console.CursorVisible = true;
                     return 0;
@@ -282,7 +293,9 @@ namespace sdel
             else
             if (!File.Exists(path))
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine($"File not exists:\n\"{path}\"");
+                Console.ResetColor();
 
                 Console.CursorVisible = true;
                 return 102;
@@ -335,9 +348,16 @@ namespace sdel
                 deleteFile(fi, bt, progress: progress, true, true, verbose: verbose);
 
                 if (File.Exists(path))
-                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion failed for file {path}");
-                else
-                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for file {path}");
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion failed for file '{path}'");
+                    Console.ResetColor();
+
+                    Console.CursorVisible = true;
+                    return 15;
+                }
+
+                Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for file '{path}'");
 
                 Console.CursorVisible = true;
                 return 0;
@@ -395,52 +415,75 @@ namespace sdel
                 }
                 catch (UnauthorizedAccessException e)
                 {
-                    Console.Error.WriteLine($"Error for file {file.FullName}\n{e.Message}\n{e.StackTrace}");
+                    Console.Error.WriteLine($"Error for file '{file.FullName}'\n{e.Message}\n{e.StackTrace}");
                 }
             }
 
             di.Refresh();
             var checkList = di.GetFiles();
-            if (checkList.Length > 0)
+            if (checkList.LongLength > 0)
             {
                 Console.CursorVisible = true;
 
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("Files is not deleted. Some files wich not has been deleted:");
+                Console.ResetColor();
+
                 var cnt = 0;
                 foreach (var fileInfo in checkList)
                 {
                     Console.Error.WriteLine(fileInfo);
                     cnt++;
                     if (cnt > 16)
+                    {
+                        Console.Error.WriteLine($"and others: {cnt} files in total");
                         break;
+                    }
                 }
 
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine();
                 Console.Error.WriteLine("Files is not deleted");
+                Console.ResetColor();
+
                 return 11;
             }
 
-            deleteDir(di, progress: progress, verbose: verbose);
+            try
+            {
+                deleteDir(di, progress: progress, verbose: verbose);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine($"Deletion failed for directory '{di.FullName}' with exception\n{e.Message}\n{e.StackTrace}\n\n");
+            }
 
             Console.CursorVisible = true;
             di.Refresh();
+            var checkCount = checkList.LongLength;
             if (di.Exists)
             {
                 if (progress.doNotDeleteDirectories > 0)
+                {}
+                else
                 {
-                    checkList = di.GetFiles();
+                    // Проверяем содержимое всех директорий, включая поддиректории - их не должно быть
+                    // checkCount = di.GetFileSystemInfos().LongLength;
+                    checkCount = 1;
                 }
 
-                if (checkList.LongLength > 0)
+                if (checkCount > 0)
                 {
-                    Console.WriteLine($"Deletion failed for directory {path}. Program ended with time {progress.getMessageForEntireTimeOfSanitization}.");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Deletion failed for directory '{path}'. Program ended with time {progress.getMessageForEntireTimeOfSanitization}.");
+                    Console.ResetColor();
                     return 12;
                 }
             }
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory {path}");
+            Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory '{path}'");
             Console.WriteLine();
 
             return 0;
@@ -462,8 +505,9 @@ namespace sdel
             return verbose;
         }
 
-        public static void ExecuteSdels(string flagsOfAll, StreamReader stdR)
+        public static int ExecuteSdels(string flagsOfAll, StreamReader stdR)
         {
+            int rc    = 0;
             var foa   = flagsOfAll.Split(  new char[] { ':' },   StringSplitOptions.None  );
             var flags = foa[0];
 
@@ -490,12 +534,29 @@ namespace sdel
                 using (var pi = Process.Start(psi))
                 {
                     pi.WaitForExit();
+                    
+                    if (pi.ExitCode != 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        rc = pi.ExitCode;
+                    }
 
                     Console.Error.WriteLine(pi.StandardError.ReadToEnd());
                     Console.WriteLine(pi.StandardOutput.ReadToEnd());
+
+                    Console.ResetColor();
                 }
             }
             while (true);
+
+            if (rc != 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine("Error occured");
+                Console.ResetColor();
+            }
+
+            return rc;
         }
 
         private static bool createFile(string path, Progress progress, int verbose)
@@ -756,22 +817,29 @@ namespace sdel
             var sb = new StringBuilder(fn.Length);
             for (char ci = ' '; ci <= 'z'; ci++)
             {
-                if (ci == '*' || ci == '?' || ci == Path.DirectorySeparatorChar || ci == Path.AltDirectorySeparatorChar)
-                    continue;
-
-                sb.Clear();
-                sb.Append(ci, fn.Length);
-                fn = sb.ToString();
-                sb.Clear();
-
-                newFileName = Path.Combine(dir.Parent.FullName, fn);
-                if (File.Exists(newFileName) || Directory.Exists(newFileName))
+                try
                 {
-                    continue;
+                    if (ci == '*' || ci == '?' || ci == Path.DirectorySeparatorChar || ci == Path.AltDirectorySeparatorChar)
+                        continue;
+    
+                    sb.Clear();
+                    sb.Append(ci, fn.Length);
+                    fn = sb.ToString();
+                    sb.Clear();
+    
+                    newFileName = Path.Combine(dir.Parent.FullName, fn);
+                    if (File.Exists(newFileName) || Directory.Exists(newFileName))
+                    {
+                        continue;
+                    }
+    
+                    dir.MoveTo(newFileName);
+                    break;
                 }
-
-                dir.MoveTo(newFileName);
-                break;
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine($"Error for dir {dir.FullName} with newFileName '{newFileName}'\n{e.Message}\n{e.StackTrace}");
+                }
             }
 
             var dirList = dir.GetDirectories();
@@ -867,14 +935,19 @@ namespace sdel
                         }
                         catch (Exception e)
                         {
+                            Console.ForegroundColor = ConsoleColor.Red;
                             Console.Error.WriteLine($"Could not expand the file {oldFileName}. Error: {e.Message}");
+                            Console.ResetColor();
                         }
                     }
                 }
             }
             catch (System.UnauthorizedAccessException)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine($"Access denied for file \"{oldFileName}\"");
+                Console.ResetColor();
+
                 return;
             }
 
