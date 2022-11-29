@@ -293,7 +293,7 @@ namespace sdel
             else
             if (!File.Exists(path))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Error.WriteLine($"File not exists:\n\"{path}\"");
                 Console.ResetColor();
 
