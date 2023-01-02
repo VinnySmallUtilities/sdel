@@ -4,10 +4,16 @@
 For Linux require to install [.NET 7.0](https://dotnet.microsoft.com/download)
 
 Building for you system
+
     cd you_directory_for_sdel
+    
     git clone https://github.com/VinnySmallUtilities/sdel
+    
     cd sdel
+    
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
+    
+    Executable file ./build/sdel
 
 
 The program erase the file (directory) with a single rewriting (data sanitization) of the data in it.
@@ -145,6 +151,8 @@ sdel
     cd sdel
     
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
+    
+    Исполняемый файл ./build/sdel
 
 
 Программа удаляет файл (папку) с однократным перезатированием данных в нём.
