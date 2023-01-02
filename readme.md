@@ -1,7 +1,14 @@
 ﻿Русский ниже
 
 # English
-For Linux require to install Mono https://www.mono-project.com/
+For Linux require to install [.NET 7.0](https://dotnet.microsoft.com/download)
+
+Building for you system
+    cd you_directory_for_sdel
+    git clone https://github.com/VinnySmallUtilities/sdel
+    cd sdel
+    dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
+
 
 The program erase the file (directory) with a single rewriting (data sanitization) of the data in it.
 
@@ -127,7 +134,7 @@ sdel
 
 
 # Русский
-На Linux требует установленной Mono https://www.mono-project.com/
+На Linux требует установленной [.NET 7.0](https://dotnet.microsoft.com/download)
 
 Программа удаляет файл (папку) с однократным перезатированием данных в нём.
 Используется простая перезапись файла через функции ОС, не ждите ничего особенного.

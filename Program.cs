@@ -521,7 +521,8 @@ namespace sdel
                 if (line == null)
                     break;
 
-                var sdelName = typeof(MainClass).Assembly.Location;
+                // var sdelName = typeof(MainClass)!.Assembly!.Location;
+                var sdelName = System.AppContext.BaseDirectory!;
                 var cmdLine = $"'{foa[1]}' '{line}'";
                 if (verbose > 0)
                     Console.WriteLine($"Start {sdelName} {cmdLine}");
@@ -533,6 +534,12 @@ namespace sdel
                 psi.RedirectStandardError = true;
                 using (var pi = Process.Start(psi))
                 {
+                    if (pi == null)
+                    {
+                        rc = 1;
+                        continue;
+                    }
+
                     pi.WaitForExit();
                     
                     if (pi.ExitCode != 0)
@@ -587,7 +594,7 @@ namespace sdel
             DateTime now, dt = DateTime.MinValue;
             TimeSpan ts;
 
-            FileStream fs = null;
+            FileStream? fs = null;
             if (progress.createDirectoriesOnly <= 0)
             try
             {
@@ -671,7 +678,7 @@ namespace sdel
             {
                 try
                 {
-                    fs.Close();
+                    fs?.Close();
                 }
                 catch
                 { }
@@ -826,14 +833,14 @@ namespace sdel
                     sb.Append(ci, fn.Length);
                     fn = sb.ToString();
                     sb.Clear();
-    
-                    newFileName = Path.Combine(dir.Parent.FullName, fn);
+
+                    newFileName = Path.Combine(dir!.Parent!.FullName!, fn);
                     if (File.Exists(newFileName) || Directory.Exists(newFileName))
                     {
                         continue;
                     }
-    
-                    dir.MoveTo(newFileName);
+
+                    dir!.MoveTo(newFileName);
                     break;
                 }
                 catch (Exception e)
@@ -969,7 +976,7 @@ namespace sdel
                         fn = sb.ToString();
                         sb.Clear();
     
-                        newFileName = Path.Combine(file.DirectoryName, fn);
+                        newFileName = Path.Combine(file.DirectoryName!, fn);
                         if (newFileName == oldFileName)
                             continue;
     
@@ -989,10 +996,10 @@ namespace sdel
                         file.MoveTo(newFileName);
                         break;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         if (ci == 'z')
-                            throw e;
+                            throw;
                     }
                 }
             }
