@@ -136,6 +136,17 @@ sdel
 # Русский
 На Linux требует установленной [.NET 7.0](https://dotnet.microsoft.com/download)
 
+Построение для вашей системы
+
+    cd you_directory_for_sdel
+    
+    git clone https://github.com/VinnySmallUtilities/sdel
+    
+    cd sdel
+    
+    dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
+
+
 Программа удаляет файл (папку) с однократным перезатированием данных в нём.
 Используется простая перезапись файла через функции ОС, не ждите ничего особенного.
 
