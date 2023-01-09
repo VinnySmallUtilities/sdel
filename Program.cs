@@ -53,6 +53,11 @@ namespace sdel
                     var cntProgress  = rewritedCnt  / (float) cntToRewrite;
                     var sizeProgress = rewritedSize / (float) SizeToRewrite;
 
+                    if (cntToRewrite == 0)
+                        cntProgress = 1f;
+                    if (SizeToRewrite == 0)
+                        sizeProgress = 1f;
+
                     return (cntProgress + sizeProgress) * 50f;
                 }
             }
@@ -176,7 +181,7 @@ namespace sdel
 
             if (args.Length < 2 || isFirstFileError)
             {
-                Console.Error.WriteLine("sdel dir");
+                Console.Error.WriteLine("sdel 'flags' dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
                 Console.WriteLine("sdel v /home/user/.wine");
