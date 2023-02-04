@@ -1,6 +1,6 @@
 ﻿// Виноградов Сергей Васильевич, 1984, Мытищи
 // https://github.com/VinnySmallUtilities/sdel
-// 2022 год
+// 2022-2023 год
 
 
 using System;
@@ -197,6 +197,7 @@ namespace sdel
                 Console.WriteLine("flag 'crds' or 'crs' set to the creation mode with a one time to write at the creation file moment");
                 Console.WriteLine("flag 'crf' set to the creation mode for create directories only");
                 Console.WriteLine("use ':' to use with conveyor. Example: ls -1 | sdel 'v:-'");
+                Console.WriteLine("ndd - do not delete directories");
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
                 Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
@@ -210,6 +211,8 @@ namespace sdel
                 Console.WriteLine("sdel 'pr v' ~/_toErase");
                 Console.WriteLine("for directory");
                 Console.WriteLine("sdel 'pr v sl' ~/_toErase");
+                Console.WriteLine("for delete all logs in the Linux /var/log");
+                Console.WriteLine("sudo sdel ndd /var/log");
 
                 return 101;
             }

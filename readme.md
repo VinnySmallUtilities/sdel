@@ -98,6 +98,13 @@ Example:
 ls -1 | sdel 'v:-'
 
 
+ndd - do not delete directories
+for delete all logs in the Linux /var/log
+sudo sdel ndd /var/log
+(directories still exists)
+
+
+
 ## Usage examples
 
 Overwriting the swap file if it is located at /swapfile
@@ -227,6 +234,11 @@ sdel - /home/user/.wine
 Используйте двоеточие ':' вместе с конвейером команд.
 Пример:
 ls -1 | sdel 'v:-'
+
+ndd - не удалять директории
+Для удаления всех логов в Linux в директории /var/log
+sudo sdel ndd /var/log
+(все папки не удалены, но ни одного файла нет)
 
 
 ## Примеры использования
