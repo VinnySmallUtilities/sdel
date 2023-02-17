@@ -376,33 +376,6 @@ namespace sdel
                 Console.WriteLine("Prepare a list of files to data sanitization");
             }
 
-            var di = new DirectoryInfo(path);
-            var list = di.GetFiles("*", SearchOption.AllDirectories);
-
-            if (flags.Contains("pr"))
-            {
-                var dt = progress.creationTime;
-                progress = new Progress();
-                progress.creationTime = dt;
-
-                foreach (var file in list)
-                {
-                    progress.cntToRewrite += 1;
-                    progress.SizeToRewrite += file.Length;
-                }
-
-                if (zFlag >= 2)
-                    progress.SizeToRewrite *= zFlag;
-                if (zFlag >= 4)
-                    throw new NotImplementedException();
-
-                var dirList = di.EnumerateDirectories("*", SearchOption.AllDirectories);
-                foreach (var file in list)
-                {
-                    progress.cntToRewrite += 1;
-                }
-            }
-
             if (flags.Contains("sl"))
             {
                 progress.slowDownFlag = 1;
@@ -415,17 +388,48 @@ namespace sdel
                 Console.WriteLine("ndd - do not delete directories");
             }
 
-            foreach (var file in list)
-            {
-                try
-                {
-                    deleteFile(file, bt, progress: progress, true, verbose: verbose);
-                }
-                catch (UnauthorizedAccessException e)
-                {
-                    Console.Error.WriteLine($"Error for file '{file.FullName}'\n{e.Message}\n{e.StackTrace}");
-                }
-            }
+            var di = new DirectoryInfo(path);
+
+			try
+			{
+				if (flags.Contains("pr"))
+				{
+					// var list = di.GetFiles("*", SearchOption.AllDirectories);
+					var list = di.EnumerateFiles("*", SearchOption.AllDirectories);
+
+					var dt = progress.creationTime;
+					progress = new Progress();
+					progress.creationTime = dt;
+
+					foreach (var file in list)
+					{
+						try
+						{
+							progress.cntToRewrite += 1;
+							progress.SizeToRewrite += file.Length;
+						}
+						catch
+						{}
+					}
+
+					if (zFlag >= 2)
+						progress.SizeToRewrite *= zFlag;
+					if (zFlag >= 4)
+						throw new NotImplementedException();
+
+					var dirList = di.EnumerateDirectories("*", SearchOption.AllDirectories);
+					foreach (var file in list)
+					{
+						progress.cntToRewrite += 1;
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Console.Error.WriteLine($"Error for calculate progress for '{di.FullName}'\n{e.Message}\n{e.StackTrace}");
+			}
+
+			DeleteFilesFromDir(di, bt: bt, progress: progress, verbose: verbose);
 
             di.Refresh();
             var checkList = di.GetFiles();
@@ -496,6 +500,70 @@ namespace sdel
 
             return 0;
         }
+
+		// Такая рекурсия нужна, потому что часть файлов могут быть недоступны по каким-то причинам для удаления и мы должны удалить хотя бы то, что можем
+		static void DeleteFilesFromDir(DirectoryInfo di, List<byte[]> bt, Progress progress, int verbose = 0)
+		{
+			// Удаляем файлы в директории
+			for (int @try = 0; @try < 2; @try++)
+			{
+				try
+				{
+					var list = di.EnumerateFiles("*", SearchOption.TopDirectoryOnly);
+
+					foreach (var file in list)
+					{
+						try
+						{
+							file.Refresh();
+
+							if (file.Exists)
+								deleteFile(file, bt, progress: progress, true, verbose: verbose);
+							else
+							if (verbose >= 2)
+								Console.WriteLine($"File not exists'{file.FullName}' (removed from another program?)");
+						}
+						catch (UnauthorizedAccessException e)
+						{
+							Console.Error.WriteLine($"Error (PD) for file '{file.FullName}'\n{e.Message}\n{e.StackTrace}");
+						}
+						catch (Exception e)
+						{
+							Console.Error.WriteLine($"Error (1) for file '{file.FullName}'\n{e.Message}\n{e.StackTrace}");
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Console.Error.WriteLine($"Error (1) for directory '{di.FullName}'\n{e.Message}\n{e.StackTrace}");
+				}
+			}
+
+			// Удаляем файлы в поддиректориях
+			for (int @try = 0; @try < 2; @try++)
+			{
+				try
+				{
+					var list = di.EnumerateDirectories("*", SearchOption.TopDirectoryOnly);
+
+					foreach (var dir in list)
+					{
+						try
+						{
+							DeleteFilesFromDir(dir, bt: bt, progress: progress, verbose: verbose);
+						}
+						catch (Exception e)
+						{
+							Console.Error.WriteLine($"Error (1) for subdirectory '{dir.FullName}'\n{e.Message}\n{e.StackTrace}");
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Console.Error.WriteLine($"Error (2) for directory '{di.FullName}'\n{e.Message}\n{e.StackTrace}");
+				}
+			}
+		}
 
         private static int GetVerboseFlag(string flags)
         {
@@ -826,6 +894,19 @@ namespace sdel
             if (verbose > 0)
             Console.WriteLine($"Try to delete directory \"{dir.FullName}\"");
 
+            var dirList = dir.GetDirectories();
+            foreach (var di in dirList)
+            {
+                try
+                {
+                    deleteDir(di, progress: progress, verbose: verbose);
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    Console.Error.WriteLine($"Error for dir {di.FullName}\n{e.Message}\n{e.StackTrace}");
+                }
+            }
+
             var newFileName = dir.FullName;
 
             var fn = dir.Name;
@@ -857,19 +938,6 @@ namespace sdel
                 }
             }
 
-            var dirList = dir.GetDirectories();
-            foreach (var di in dirList)
-            {
-                try
-                {
-                    deleteDir(di, progress: progress, verbose: verbose);
-                }
-                catch (UnauthorizedAccessException e)
-                {
-                    Console.Error.WriteLine($"Error for dir {di.FullName}\n{e.Message}\n{e.StackTrace}");
-                }
-            }
-
             Directory.Delete(newFileName);
             if (Directory.Exists(newFileName) || Directory.Exists(oldDirName))
                 Console.WriteLine($"Fail to delete directory \"{oldDirName}\"");
@@ -886,14 +954,48 @@ namespace sdel
             var oldFileName = file.FullName;
 
             if (verbose > 0)
-            Console.WriteLine($"Try to delete file \"{oldFileName}\"");
+			{
+				if (file.LinkTarget is null)
+				{
+					Console.WriteLine($"Try to delete file \"{oldFileName}\"");
+				}
+				else
+					Console.WriteLine($"The wiping has been skipped for link with name \"{oldFileName}\"");
+			}
 
+			var faMode = FileAccess.Write | FileAccess.Read;
+			if (file.LinkTarget is null)
             try
             {
                 DateTime now, dt = DateTime.MinValue;
                 TimeSpan ts;
+				
+				FileStream? fs = null;
+				try
+				{
+					fs = new FileStream(file.FullName, FileMode.Open, faMode, FileShare.None, 1, FileOptions.WriteThrough);
+				}
+				catch
+				{
+					faMode = FileAccess.Write;
+					if (verbose > 1)
+					Console.WriteLine($"Can not open file with 'rw' mode: \"{oldFileName}\"\nWill try 'w' mode");
 
-                using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Write, FileShare.None, 1, FileOptions.WriteThrough))
+					fs = new FileStream(file.FullName, FileMode.Open, faMode, FileShare.None, 1, FileOptions.WriteThrough);
+				}
+
+				if (!fs.CanSeek)
+				{
+					Console.WriteLine($"File not support seeking and skipped (may be pipe or another service file): \"{oldFileName}\"\nWill try 'w' mode");
+					fs.Close();
+					fs = null;
+				}
+
+
+				// Есть файлы типа pipe, они зависают при попытке открыть их только на запись, но на чтение+запись открываются нормально
+				// prwx------ 1 root        root        0 фев 17 12:27 /tmp/clr-debug-pipe-813-1941-in|
+				if (fs != null)
+                using (fs)
                 {
                     if (progress.slowDownFlag > 0)
                         dt = DateTime.Now;
@@ -938,7 +1040,7 @@ namespace sdel
                         try
                         {
                             fs.Seek(offset, SeekOrigin.Begin);
-    
+
                             // Выравниваем на границу 64 кб
                             var c = offset & 65535;
                             if (c != 0)
@@ -987,7 +1089,7 @@ namespace sdel
                         newFileName = Path.Combine(file.DirectoryName!, fn);
                         if (newFileName == oldFileName)
                             continue;
-    
+
                         if (File.Exists(newFileName) || Directory.Exists(newFileName))
                         {
                             if (onlyOne)
@@ -1000,7 +1102,7 @@ namespace sdel
     
                             deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
                         }
-        
+
                         file.MoveTo(newFileName);
                         break;
                     }
@@ -1012,8 +1114,16 @@ namespace sdel
                 }
             }
 
-            File.Open(newFileName, FileMode.Truncate).Close();
-            File.Delete(newFileName);
+			try
+			{
+            	File.Open(newFileName, FileMode.Truncate).Close();
+				File.Delete(newFileName);		// Если не получилось обрезать файл, не будем и удалять его, чтобы его можно было дальше обрезать каким-то другим способом и было понятно, что удаление не закончилось успехом
+			}
+			catch (Exception e)
+			{
+				//if (verbose > 0)
+				Console.WriteLine($"Fail to truncate file \"{oldFileName}\" with error: '{e.Message}'");
+			}
 
             progress.rewritedCnt++;
             progress.showMessage();
