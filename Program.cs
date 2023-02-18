@@ -986,7 +986,7 @@ namespace sdel
 
 				if (!fs.CanSeek)
 				{
-					Console.WriteLine($"File not support seeking and skipped (may be pipe or another service file): \"{oldFileName}\"\nWill try 'w' mode");
+					Console.WriteLine($"File not support seeking and skipped (may be pipe or another service file): \"{oldFileName}\"");
 					fs.Close();
 					fs = null;
 				}
