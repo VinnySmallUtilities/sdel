@@ -160,7 +160,7 @@ sdel
     git clone https://github.com/VinnySmallUtilities/sdel
     
     cd sdel
-    
+
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
 	# ИЛИ
 	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true /p:PublishTrimmed=true
