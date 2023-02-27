@@ -550,6 +550,7 @@ namespace sdel
 					{
 						try
 						{
+							if (dir.LinkTarget is null)
 							DeleteFilesFromDir(dir, bt: bt, progress: progress, verbose: verbose);
 						}
 						catch (Exception e)
@@ -894,18 +895,23 @@ namespace sdel
             if (verbose > 0)
             Console.WriteLine($"Try to delete directory \"{dir.FullName}\"");
 
-            var dirList = dir.GetDirectories();
-            foreach (var di in dirList)
-            {
-                try
-                {
-                    deleteDir(di, progress: progress, verbose: verbose);
-                }
-                catch (UnauthorizedAccessException e)
-                {
-                    Console.Error.WriteLine($"Error for dir {di.FullName}\n{e.Message}\n{e.StackTrace}");
-                }
-            }
+			// Также пропускаем ссылки, не проходя по ним. То есть мы сейчас не будем перечислять директорию, которая является ссылкой
+			if (dir.LinkTarget is null)
+			{
+				var dirList = dir.GetDirectories();
+
+				foreach (var di in dirList)
+				{
+					try
+					{
+						deleteDir(di, progress: progress, verbose: verbose);
+					}
+					catch (UnauthorizedAccessException e)
+					{
+						Console.Error.WriteLine($"Error for dir {di.FullName}\n{e.Message}\n{e.StackTrace}");
+					}
+				}
+			}
 
             var newFileName = dir.FullName;
 
@@ -938,7 +944,15 @@ namespace sdel
                 }
             }
 
-            Directory.Delete(newFileName);
+			if (dir.LinkTarget is null)
+			{
+            	Directory.Delete(newFileName);
+			}
+			else
+			{
+				File.Delete(newFileName);
+			}
+
             if (Directory.Exists(newFileName) || Directory.Exists(oldDirName))
                 Console.WriteLine($"Fail to delete directory \"{oldDirName}\"");
             else
@@ -963,14 +977,15 @@ namespace sdel
 					Console.WriteLine($"The wiping has been skipped for link with name \"{oldFileName}\"");
 			}
 
+			FileStream? fs = null;
+
 			var faMode = FileAccess.Write | FileAccess.Read;
 			if (file.LinkTarget is null)
             try
             {
                 DateTime now, dt = DateTime.MinValue;
                 TimeSpan ts;
-				
-				FileStream? fs = null;
+
 				try
 				{
 					fs = new FileStream(file.FullName, FileMode.Open, faMode, FileShare.None, 1, FileOptions.WriteThrough);
@@ -981,10 +996,18 @@ namespace sdel
 					if (verbose > 1)
 					Console.WriteLine($"Can not open file with 'rw' mode: \"{oldFileName}\"\nWill try 'w' mode");
 
-					fs = new FileStream(file.FullName, FileMode.Open, faMode, FileShare.None, 1, FileOptions.WriteThrough);
+					try
+					{
+						fs = new FileStream(file.FullName, FileMode.Open, faMode, FileShare.None, 1, FileOptions.WriteThrough);
+					}
+					catch (Exception e)
+					{
+						if (verbose > 1)
+						Console.WriteLine($"Can not open file with 'w' mode: \"{oldFileName}\"\n{e.Message}");
+					}
 				}
 
-				if (!fs.CanSeek)
+				if (fs != null && !fs.CanSeek)
 				{
 					Console.WriteLine($"File not support seeking and skipped (may be pipe or another service file): \"{oldFileName}\"");
 					fs.Close();
@@ -1116,7 +1139,12 @@ namespace sdel
 
 			try
 			{
-            	File.Open(newFileName, FileMode.Truncate).Close();
+				// Обрезаем файл только в том случае, если это не ссылка
+				if (fs != null)
+				{
+	            	File.Open(newFileName, FileMode.Truncate).Close();
+				}
+
 				File.Delete(newFileName);		// Если не получилось обрезать файл, не будем и удалять его, чтобы его можно было дальше обрезать каким-то другим способом и было понятно, что удаление не закончилось успехом
 			}
 			catch (Exception e)

@@ -13,10 +13,10 @@ Building for you system
     
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
 	# OR 
-	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true /p:PublishTrimmed=true
-	# instead "--use-current-runtime true" may be "-r linux-x64"
-    
-    Executable file ./build/sdel
+	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true
+	# dotnet publish --output ./build.cur -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+
+    Executable file ./build/sdel (or ./build.cur/sdel for second variant)
 	
 
 
@@ -163,10 +163,10 @@ sdel
 
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
 	# ИЛИ
-	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained true /p:PublishSingleFile=true /p:PublishReadyToRun=true /p:PublishTrimmed=true
-	# вместо "--use-current-runtime true" может быть "-r linux-x64"
+	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true
+	# dotnet publish --output ./build.cur -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
 
-    Исполняемый файл ./build/sdel
+    Исполняемый файл ./build/sdel (или ./build.cur/sdel для второго варианта командной строки)
 
 
 Программа удаляет файл (папку) с однократным перезатированием данных в нём.
