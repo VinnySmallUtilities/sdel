@@ -10,11 +10,12 @@ Building for you system
     git clone https://github.com/VinnySmallUtilities/sdel
     
     cd sdel
-    
+
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
 	# OR 
 	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true
 	# dotnet publish --output ./build.cur -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+	# OR bash ./build.sh
 
     Executable file ./build/sdel (or ./build.cur/sdel for second variant)
 	
@@ -165,6 +166,7 @@ sdel
 	# ИЛИ
 	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true
 	# dotnet publish --output ./build.cur -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
+	# ИЛИ bash ./build.sh
 
     Исполняемый файл ./build/sdel (или ./build.cur/sdel для второго варианта командной строки)
 

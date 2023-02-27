@@ -3,3 +3,4 @@ obj
 bin
 build
 build.cur
+publish/build*
