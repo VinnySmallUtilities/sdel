@@ -1,7 +1,11 @@
 ﻿Русский ниже
 
 # English
-For Linux require to install [.NET 7.0](https://dotnet.microsoft.com/download)
+For Linux require to install [.NET 7.0](https://dotnet.microsoft.com/download) (or let's download self-contained pack; see [builded.md](builded.md) sdel-lin64sc.7z )
+
+
+Builded versions: see [builded.md](builded.md)
+
 
 Building for you system
 
@@ -152,7 +156,11 @@ sdel
 
 
 # Русский
-На Linux требует установленной [.NET 7.0](https://dotnet.microsoft.com/download)
+На Linux требует установленной [.NET 7.0](https://dotnet.microsoft.com/download)  (или скачайте пакет, содержащий в себе необходимые компоненты .NET; см. [builded.md](builded.md) sdel-lin64sc.7z )
+
+
+Собранные версии: см. [builded.md](builded.md)
+
 
 Построение для вашей системы
 
