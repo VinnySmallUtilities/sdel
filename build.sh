@@ -18,5 +18,10 @@ dotnet publish --output ./publish/build.lin64sc -c Release -r linux-x64 --self-c
 7z a -y -t7z -stl -m0=lzma -mx=9 -ms=on -bb0 -bd -ssc -ssw ./publish/sdel-lin64.7z   ./publish/build.lin64/   >> /dev/null
 7z a -y -t7z -stl -m0=lzma -mx=9 -ms=on -bb0 -bd -ssc -ssw ./publish/sdel-lin64sc.7z ./publish/build.lin64sc/ >> /dev/null
 
+echo
 echo 'Published in '
 echo `realpath ./publish`
+echo
+echo 'sdel-dotnet  for execute with dotnet sdel.dll'
+echo 'sdel-lin64   for execute sdel (with .NET 7.0 on Linux)'
+echo 'sdel-lin64sc for execute sdel on Linux x64 without .NET 7.0'
