@@ -11,6 +11,8 @@ sdel-lin64   for execute sdel (with .NET 7.0 on Linux)
 sdel-lin64sc for execute sdel on Linux x64 without .NET 7.0
 
 
+To install .NET 7.0 see [.NET 7.0](https://dotnet.microsoft.com/download)
+
 
 # Русский
 
@@ -19,3 +21,6 @@ sdel-dotnet  для выполнения с командой dotnet sdel.dll
 sdel-lin64   для выполнения sdel (с установленной .NET 7.0 на Linux)
 
 sdel-lin64sc для выполнения sdel на Linux x64 без установленной .NET 7.0
+
+
+Для установки .NET 7.0 смотрите [.NET 7.0](https://dotnet.microsoft.com/download)
