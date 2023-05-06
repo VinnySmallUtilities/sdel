@@ -220,7 +220,7 @@ namespace sdel
             Progress progress = new Progress(showProgressFlag: 0);
 
             var path0 = args[1];
-            var path = Path.GetFullPath(path0);
+            var path  = Path.GetFullPath(path0); // new FileInfo(path0).FullName;
             var flags = args[0];
             int verbose = GetVerboseFlag(flags);
 
@@ -289,6 +289,15 @@ namespace sdel
 
                     Console.CursorVisible = true;
                     return 0;
+                }
+            }
+
+            if (path0.StartsWith("'") || path0.StartsWith("\""))
+            {
+                if (!Directory.Exists(path) && !File.Exists(path))
+                {
+                    path0 = path0.Substring(1, path0.Length - 2);
+                    path  = Path .GetFullPath(path0);
                 }
             }
 
@@ -600,15 +609,17 @@ namespace sdel
 
                 // var sdelName = typeof(MainClass)!.Assembly!.Location;
                 var sdelName = System.AppContext.BaseDirectory!;
+                    sdelName = Path.Combine(sdelName, "sdel");
                 var cmdLine = $"'{foa[1]}' '{line}'";
                 if (verbose > 0)
                     Console.WriteLine($"Start {sdelName} {cmdLine}");
 
                 var psi = new ProcessStartInfo(sdelName, cmdLine);
+
                 psi.UseShellExecute = false;
-                psi.CreateNoWindow = true;
+                psi.CreateNoWindow  = true;
                 psi.RedirectStandardOutput = true;
-                psi.RedirectStandardError = true;
+                psi.RedirectStandardError  = true;
                 using (var pi = Process.Start(psi))
                 {
                     if (pi == null)
