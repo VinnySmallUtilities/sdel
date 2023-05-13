@@ -1119,7 +1119,7 @@ namespace sdel
                         sb.Append(ci, fn.Length);
                         fn = sb.ToString();
                         sb.Clear();
-    
+
                         newFileName = Path.Combine(file.DirectoryName!, fn);
                         if (newFileName == oldFileName)
                             continue;
@@ -1130,14 +1130,18 @@ namespace sdel
                             {
                                 if (ci == 'z')
                                     return;
-    
+
                                 continue;
                             }
-    
+
                             deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
                         }
 
-                        file.MoveTo(newFileName);
+                        // Похоже, FileInfo.MoveTo перемещает файл путём копирования, а затем - удаления. Это не то, что нам надо
+                        // file.MoveTo(newFileName, false);
+                        // Так что будем использовать системные команды
+                        MoveFile(oldFileName, newFileName);
+
                         break;
                     }
                     catch (Exception)
@@ -1153,7 +1157,8 @@ namespace sdel
 				// Обрезаем файл только в том случае, если это не ссылка
 				if (fs != null)
 				{
-	            	File.Open(newFileName, FileMode.Truncate).Close();
+                    // FileAccess.Write нужен тогда, когда у нас есть доступ на запись, но не на чтение
+	            	File.Open(newFileName, FileMode.Truncate, FileAccess.Write).Close();
 				}
 
 				File.Delete(newFileName);		// Если не получилось обрезать файл, не будем и удалять его, чтобы его можно было дальше обрезать каким-то другим способом и было понятно, что удаление не закончилось успехом
@@ -1172,6 +1177,60 @@ namespace sdel
             else
             if (verbose >= 2)
                 Console.WriteLine($"File deletion successfull ended: \"{oldFileName}\"");
+        }
+
+        static string mvCommandName  = "mv";
+        static string mvCommandName2 = "move";
+        public static void MoveFile(string oldFileName, string newFileName)
+        {
+            // System.OperatingSystem.IsLinux
+
+            if (System.OperatingSystem.IsWindows())
+                mvCommandName = "move";
+
+            try
+            {
+                var psi = new ProcessStartInfo(mvCommandName, $"\"{oldFileName}\" \"{newFileName}\"");
+
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError  = true;
+                using (var pi = Process.Start(psi))
+                {
+                    // Этого никогда не бывает, кажется
+                    if (pi == null)
+                    {
+                        // Console.WriteLine("pi == null");
+                        if (mvCommandName != mvCommandName2)
+                        {
+                            mvCommandName = mvCommandName2;
+                            MoveFile(oldFileName, newFileName);
+                            return;
+                        }
+
+                        else throw new Exception("pi == null");
+                    }
+
+                    pi.WaitForExit();
+
+                    if (pi.ExitCode != 0)
+                    {
+                        throw new Exception($"Error occured with rename the file; {mvCommandName} unsuccessfull. " + pi.StandardError.ReadToEnd() + "\n" + pi.StandardOutput.ReadToEnd());
+                    }
+                }
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                if (mvCommandName != mvCommandName2)
+                {
+                    mvCommandName = mvCommandName2;
+                    MoveFile(oldFileName, newFileName);
+                    return;
+                }
+
+                else throw new Exception("Error occured with rename the file; 'mv' and 'move' system commands has been tried, but its unsuccessfull");
+            }
         }
     }
 }
