@@ -156,7 +156,7 @@ sdel
 
 
 Small security alert:
-sdel program doing call "mv" system command (or "move" in Windows). Usually, this is not logged in system logs. But if your Operating System doing log for all commands, file names of removing file may be stay in logs.
+sdel program doing call "mv" system command (or "move" in Windows). Usually, this is not logged in system logs. But if your Operating System doing log for all commands, file names of removing files may be stay in logs.
 'history' in bash not see this commands.
 
 
