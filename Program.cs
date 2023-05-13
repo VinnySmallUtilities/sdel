@@ -118,10 +118,21 @@ namespace sdel
             // args = new string[] { ":prv" };
 #endif
 
-            var returnCode = Main_OneArgument(args);
+            int returnCode = -1;
+            try
+            {
+                returnCode = Main_OneArgument(args);
 
-            if (returnCode != 0)
-                return returnCode;
+                // if (returnCode != 0)
+                if (returnCode == 101 || returnCode == 102)
+                    return returnCode;
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine("ERROR: " + ex.Message + "\n" + ex.StackTrace + "\n\n\n");
+                Console.ResetColor();
+            }
 
 
             // sdel prv * добавляет новые параметры в конец
@@ -181,6 +192,7 @@ namespace sdel
 
             if (args.Length < 2 || isFirstFileError)
             {
+                Console.WriteLine("sdel version: 2023 may 13");
                 Console.Error.WriteLine("sdel 'flags' dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
@@ -1134,7 +1146,13 @@ namespace sdel
                                 continue;
                             }
 
-                            deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
+                            // Кто сказал, что newFileName можно удалять?
+                            // В целом, его можно удалять, т.к. мы удаляем целую директорию - флаг onlyOne
+                            // deleteFile(new FileInfo(newFileName), bt, progress: progress, false);
+                            // Однако, есть проблема.
+                            // Есть мы не можем удалить текущий файл, то не сможем удалить и этот:
+                            // ведь у него одинаковая длина и он также будет переименован в аналогичные имена
+                            continue;
                         }
 
                         // Похоже, FileInfo.MoveTo перемещает файл путём копирования, а затем - удаления. Это не то, что нам надо
