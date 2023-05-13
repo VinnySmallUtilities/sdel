@@ -159,6 +159,8 @@ Small security alert:
 sdel program doing call "mv" system command (or "move" in Windows). Usually, this is not logged in system logs. But if your Operating System doing log for all commands, file names of removing files may be stay in logs.
 'history' in bash not see this commands.
 
+If the "auditd" package is installed, it can also save any access to files in logs.
+
 
 # Русский
 На Linux требует установленной [.NET 7.0](https://dotnet.microsoft.com/download)  (или скачайте пакет, содержащий в себе необходимые компоненты .NET; см. [builded.md](builded.md) sdel-lin64sc.7z )
@@ -307,3 +309,5 @@ sdel
 Небольшое предупреждение безопасности:
 Программа sdel осуществляет вызов системной команды "mv" (или "move" в Windows). Обычно, это не логируется в системных логах. Но если ваша операционная система логирует все команды, то имена удаляемых файлов могут остаться в логах.
 'history' (история) в bash не видит этих команд.
+
+Если установлен пакет "auditd", он также может сохранять доступ к файлам в логах.

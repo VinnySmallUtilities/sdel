@@ -1088,6 +1088,7 @@ namespace sdel
                             fs.Seek(offset, SeekOrigin.Begin);
 
                             // Выравниваем на границу 64 кб
+                            // Возможно, стоит выравнивать на границу 1 Мб
                             var c = offset & 65535;
                             if (c != 0)
                             {
@@ -1220,14 +1221,13 @@ namespace sdel
                     if (pi == null)
                     {
                         // Console.WriteLine("pi == null");
-                        if (mvCommandName != mvCommandName2)
+                        /*if (mvCommandName != mvCommandName2)
                         {
                             mvCommandName = mvCommandName2;
                             MoveFile(oldFileName, newFileName);
                             return;
                         }
-
-                        else throw new Exception("pi == null");
+                        else */throw new Exception("pi == null");
                     }
 
                     pi.WaitForExit();
@@ -1238,16 +1238,36 @@ namespace sdel
                     }
                 }
             }
-            catch (System.ComponentModel.Win32Exception)
+            catch (System.ComponentModel.Win32Exception e)
             {
-                if (mvCommandName != mvCommandName2)
+                Console.Error.WriteLine(e.Message);
+                /*if (mvCommandName != mvCommandName2)
                 {
                     mvCommandName = mvCommandName2;
                     MoveFile(oldFileName, newFileName);
                     return;
                 }
+                else*/
+                    try
+                    {
+                        var psi = new ProcessStartInfo("whoami");
 
-                else throw new Exception("Error occured with rename the file; 'mv' and 'move' system commands has been tried, but its unsuccessfull");
+                        psi.UseShellExecute = false;
+                        psi.CreateNoWindow  = true;
+                        psi.RedirectStandardOutput = true;
+                        psi.RedirectStandardError  = true;
+                        using (var pi = Process.Start(psi))
+                        {
+                            pi?.WaitForExit();
+                            Console.WriteLine(pi?.StandardOutput?.ReadToEnd());
+                        }
+                    }
+                    catch (Exception ex2)
+                    {
+                        Console.WriteLine(ex2.Message);
+                    }
+
+                    throw new Exception("Error occured with rename the file; 'mv' and 'move' system commands has been tried, but its unsuccessfull");
             }
         }
     }
