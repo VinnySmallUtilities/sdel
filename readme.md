@@ -155,6 +155,11 @@ If the cursor disappears after removing the program, run the program without par
 sdel
 
 
+Small security alert:
+sdel program doing call "mv" system command (or "move" in Windows). Usually, this is not logged in system logs. But if your Operating System doing log for all commands, file names of removing file may be stay in logs.
+'history' in bash not see this commands.
+
+
 # Русский
 На Linux требует установленной [.NET 7.0](https://dotnet.microsoft.com/download)  (или скачайте пакет, содержащий в себе необходимые компоненты .NET; см. [builded.md](builded.md) sdel-lin64sc.7z )
 
@@ -297,3 +302,8 @@ sudo sdel crd_prv_sl ~/_toErase
 Если после снятия программы пропал курсор, запустите программу без параметров:
 
 sdel
+
+
+Небольшое предупреждение безопасности:
+Программа sdel осуществляет вызов системной команды "mv" (или "move" в Windows). Обычно, это не логируется в системных логах. Но если ваша операционная система логирует все команды, то имена удаляемых файлов могут остаться в логах.
+'history' (история) в bash не видит этих команд.
