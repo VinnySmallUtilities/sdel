@@ -1199,7 +1199,7 @@ namespace sdel
         }
 
         static string mvCommandName  = "mv";
-        static string mvCommandName2 = "move";
+        // static string mvCommandName2 = "move";
         public static void MoveFile(string oldFileName, string newFileName)
         {
             // System.OperatingSystem.IsLinux
