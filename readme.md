@@ -86,7 +86,7 @@ flag 'sl' get slow down progress (pauses when using the disk)
 flag 'cr' set to creation mode. A not existence file must be created as big as possible
 
 flag 'crd' set to creation mode with create a many count of directories.
-To clean up the inode, it is better to use other solutions, for example, "sfill -fllvzi /" from the "secure-delete" package
+To clean up the inode, it is better to use other solutions.
 
 Directories are created without patterns, patterns are not applied.
 
@@ -134,10 +134,12 @@ but if there is equipment for physical connection to the microcontroller, then t
 
 Overwriting an empty space on a hard (magnetic) disk.
 
-sdel crds_prv_sl ~/_toErase
+sudo sdel crds_prv_sl ~/_toErase
+Then you can delete the directory in the usual way (through the functions of the operating system)
+sudo rm -rf ~/_toErase
 
+After such a rewrite, it is recommended to clear the inode.
 
-After such a rewrite, it is recommended to clear the inode. This can be done by the sfill program mentioned above.
 "sl" will slow down the overwriting, since it will insert pauses. This will avoid significantly slowing down for other programs.
 "~/_toErase" is a non-existent directory that will be created by the program. It should be located on the disk that we want to overwrite.
 
@@ -145,8 +147,10 @@ After such a rewrite, it is recommended to clear the inode. This can be done by 
 Overwriting an empty space on an SSD or flash drive (the essence is the same only in different cases).
 
 sudo sdel crd_prv_sl ~/_toErase
+sudo sdel - ~/_toErase
 
-The explanations are similar to those given above. Inode cleanup using sfill is also required.
+
+The explanations are similar to those given above. Inode cleanup is also required.
 
 Pressing ctrl+c will cause a stop the program. You can to delete the created files manually.
 
@@ -189,7 +193,7 @@ If the "auditd" package is installed, it can also save any access to files in lo
 Программа удаляет файл (папку) с однократным перезатированием данных в нём.
 Используется простая перезапись файла через функции ОС, не ждите ничего особенного.
 
-Флаги вводятся нестандартным образом. Например:
+Флаги вводятся нестандартным для обычных программ образом. Например:
 
 sdel vvz2pr /home/user/.wine
 
@@ -241,7 +245,7 @@ sdel - /home/user/.wine
 Флаг "cr" указывает программе создать большой файл. Программа создаст директорию с именем, указанным как параметр.
 
 "crd" дополнительно создаст в указанной директории множество поддиректорий, чтобы лучше перезаписать пустое пространство на диске.
-Для очистки inode лучше использовать другие решения, например "sfill -fllvzi /" из пакета "secure-delete"
+Для очистки inode лучше использовать другие решения.
 Директории создаются с именеми "как получится", шаблоны не применяются.
 
 "crs" или "crds" создаст режим без дополнительной перезаписи файла.
@@ -285,9 +289,11 @@ sdel z_prv /swapfile
 
 Перезапись пустого места на жёстком (магнитном) диске.
 
-sdel crds_prv_sl ~/_toErase
+sudo sdel crds_prv_sl ~/_toErase
+Затем можно удалить директорию обычным образом (через функции операционной системы)
+sudo rm -rf ~/_toErase
 
-После такой перезаписи рекомендуется очистить inode. Это можно сделать упомянутой выше программой sfill.
+После такой перезаписи рекомендуется очистить inode.
 "sl" замедлит перезапись, так как будет вставлять паузы. Это позволит избежать существенного замедления других программ.
 "~/_toErase" - это несуществующая директория, которая будет создана программой. Она должна быть расположена на том диске, который мы хотим перезаписать.
 
@@ -295,8 +301,9 @@ sdel crds_prv_sl ~/_toErase
 Перезапись пустого места на SSD или флеш-накопителе (суть одно и то же только в разных корпусах).
 
 sudo sdel crd_prv_sl ~/_toErase
+sudo sdel - ~/_toErase
 
-Разъяснения аналогичны приведённым выше. Также требуется очистка inode с помощью sfill.
+Разъяснения аналогичны приведённым выше.
 
 
 Нажатие ctrl+c прекращает работу программы. Удалите созданные файлы вручную.
