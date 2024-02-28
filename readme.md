@@ -140,8 +140,6 @@ but if there is equipment for physical connection to the microcontroller, then t
 Overwriting an empty space on a hard (magnetic) disk.
 
 sudo sdel crds_prv_sl ~/_toErase
-Then you can delete the directory in the usual way (through the functions of the operating system)
-sudo rm -rf ~/_toErase
 
 After such a rewrite, it is recommended to clear the inode.
 
@@ -151,13 +149,13 @@ After such a rewrite, it is recommended to clear the inode.
 
 Overwriting an empty space on an SSD or flash drive (the essence is the same only in different cases).
 
-sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel crds_ndf_prv_sl ~/_toErase
 sudo sdel _ndf_pr ~/_toErase
 sudo rm -rf ~/_toErase
 
 OR
 
-sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel crds_ndf_prv_sl ~/_toErase
 sudo sdel _ndf_pr ~/_toErase
 sudo sdel pr ~/_toErase
 
@@ -307,23 +305,21 @@ sdel z_prv /swapfile
 Перезапись пустого места на жёстком (магнитном) диске.
 
 sudo sdel crds_prv_sl ~/_toErase
-Затем можно удалить директорию обычным образом (через функции операционной системы)
-sudo rm -rf ~/_toErase
 
-После такой перезаписи рекомендуется очистить inode.
+После такой перезаписи рекомендуется очистить inode (иными программами).
 "sl" замедлит перезапись, так как будет вставлять паузы. Это позволит избежать существенного замедления других программ.
 "~/_toErase" - это несуществующая директория, которая будет создана программой. Она должна быть расположена на том диске, который мы хотим перезаписать.
 
 
 Перезапись пустого места на SSD или флеш-накопителе (суть одно и то же только в разных корпусах).
 
-sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel crds_ndf_prv_sl ~/_toErase
 sudo sdel _ndf_pr ~/_toErase
 sudo rm -rf ~/_toErase
 
 ИЛИ
 
-sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel crds_ndf_prv_sl ~/_toErase
 sudo sdel _ndf_pr ~/_toErase
 sudo sdel pr ~/_toErase
 

@@ -279,6 +279,19 @@ namespace sdel
                     Console.WriteLine("z3: triple rewrite: 0xCCCC 0x6666 0x00");
             }
 
+            if (flags.Contains("ndd"))
+            {
+                progress.doNotDeleteDirectories = 1;
+                Console.WriteLine("ndd - do not delete directories");
+            }
+
+            if (flags.Contains("_ndf"))
+            {
+                progress.doNotDeleteFiles = 1;
+                progress.doNotDeleteDirectories = 1;
+                Console.WriteLine("_ndf - do not delete files");
+            }
+
             var creationMode = flags.Contains("cr");
             if (creationMode)
             {
@@ -319,11 +332,16 @@ namespace sdel
 
                 if (progress.createWithSimpleDeleting > 0)
                 {
-                    if (verbose > 0)
-                        Console.WriteLine($"Usually directory deleting (without additional rewriting)");
+                    if (progress.doNotDeleteDirectories == 0)
+                    {
+                        if (verbose > 0)
+                            Console.WriteLine($"Usually directory deleting (without additional rewriting)");
 
-                    Directory.Delete(path, true);
-                    Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory '{path}'");
+                        Directory.Delete(path, true);
+                        Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Deletion successfull ended for directory '{path}'");
+                    }
+                    else
+                        Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Creation successfull ended for directory '{path}'");
 
                     Console.CursorVisible = true;
                     return 0;
@@ -389,7 +407,7 @@ namespace sdel
                 if (flags.Contains("pr"))
                 {
                     var dt = progress.creationTime;
-                    progress = new Progress(SizeToRewrite: fi.Length, cntToRewrite: 1, progress: progress);
+                    progress = new Progress(SizeToRewrite: fi.Length, cntToRewrite: 1, progress: progress) { showProgressFlag = 1 };
 
                     progress.creationTime = dt;
                 }
@@ -453,7 +471,7 @@ namespace sdel
 					var list = di.EnumerateFiles("*", SearchOption.AllDirectories);
 
 					var dt = progress.creationTime;
-					progress = new Progress(progress: progress);
+					progress = new Progress(progress: progress) { showProgressFlag = 1 };
 					progress.creationTime = dt;
 
 					foreach (var file in list)

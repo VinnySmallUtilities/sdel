@@ -19,6 +19,8 @@ dotnet publish --output ./publish/build.lin64sc -c Release -r linux-x64 --self-c
 7z a -y -t7z -stl -m0=lzma -mx=9 -ms=on -bb0 -bd -ssc -ssw ./publish/sdel-lin64sc.7z ./publish/build.lin64sc/ >> /dev/null
 
 echo
+date
+echo
 echo 'Published in '
 echo `realpath ./publish`
 echo
