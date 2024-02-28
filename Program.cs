@@ -217,7 +217,7 @@ namespace sdel
 
             if (args.Length < 2 || isFirstFileError)
             {
-                Console.WriteLine("sdel version: 2024 feb 28.19");
+                Console.WriteLine("sdel version: 2024 feb 28.21");
                 Console.Error.WriteLine("sdel 'flags' dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
