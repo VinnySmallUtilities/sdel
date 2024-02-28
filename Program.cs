@@ -1,6 +1,6 @@
 ﻿// Виноградов Сергей Васильевич, 1984, Мытищи
 // https://github.com/VinnySmallUtilities/sdel
-// 2022-2023 год
+// 2022-2024 год
 
 
 using System;
@@ -50,14 +50,21 @@ namespace sdel
             {
                 get
                 {
-                    var cntProgress  = rewritedCnt  / (float) cntToRewrite;
-                    var sizeProgress = rewritedSize / (float) SizeToRewrite;
+                    if (cntToRewrite <= 1)
+                        if (SizeToRewrite > 0)
+                            return (rewritedSize / (float) SizeToRewrite) * 100f;
+                        else
+                            return 100f;
 
-                    if (cntToRewrite == 0)
+                    var cntProgress  = rewritedCnt  / (float) (cntToRewrite - 1f);
+                    var sizeProgress = SizeToRewrite == 0 ? 1f : rewritedSize / (float) SizeToRewrite;
+
+                    if (cntProgress > 1f)
                         cntProgress = 1f;
-                    if (SizeToRewrite == 0)
+                    if (sizeProgress > 1f)
                         sizeProgress = 1f;
 
+                    // Преобразуем в проценты и находим среднее арифметическое между прогрессом по количеству файлов и прогрессом по количеству байтов
                     return (cntProgress + sizeProgress) * 50f;
                 }
             }
@@ -86,7 +93,7 @@ namespace sdel
                 Console.ResetColor();
                 Console.CursorVisible = false;
             }
-            
+
             public string getMessageForEntireTimeOfSanitization
             {
                 get
@@ -96,7 +103,7 @@ namespace sdel
                 }
             }
         }
-        
+
         const int BufferSize         = 16 * 1024 * 1024;
         const int MinTimeToSleepInMs = 50;
 
@@ -192,7 +199,7 @@ namespace sdel
 
             if (args.Length < 2 || isFirstFileError)
             {
-                Console.WriteLine("sdel version: 2023 may 13.2");
+                Console.WriteLine("sdel version: 2024 feb 28.15");
                 Console.Error.WriteLine("sdel 'flags' dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
@@ -375,6 +382,7 @@ namespace sdel
                 }
 
                 deleteFile(fi, bt, progress: progress, true, true, verbose: verbose);
+                progress.showMessage(forced: true);
 
                 if (File.Exists(path))
                 {
@@ -485,6 +493,7 @@ namespace sdel
             try
             {
                 deleteDir(di, progress: progress, verbose: verbose);
+                progress.showMessage(forced: true);
             }
             catch (Exception e)
             {

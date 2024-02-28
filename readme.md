@@ -16,13 +16,14 @@ Building for you system
     cd sdel
 
     dotnet publish --output ./build -c Release --self-contained false /p:PublishSingleFile=true
+    # OR
+	# bash ./build.sh
 	# OR 
 	# dotnet publish --output ./build.cur -c Release --use-current-runtime true --self-contained false /p:PublishSingleFile=true /p:PublishReadyToRun=true
 	# dotnet publish --output ./build.cur -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true
-	# bash ./build.sh
 
     Executable file ./build/sdel (or ./build.cur/sdel for second variant)
-	
+
 
 
 The program erase the file (directory) with a single rewriting (data sanitization) of the data in it.
