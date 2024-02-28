@@ -29,7 +29,8 @@ namespace sdel
             public int  createWithSimpleDeleting = 0;           /// <summary>Создавать только директории, не создавая большого файла (crf)</summary>
             public int  createDirectoriesOnly    = 0;
                                                                 /// <summary>Не удалять директории (только файлы, оставить структуру папок нетронутой)</summary>
-            public int  doNotDeleteDirectories   = 0;
+            public int  doNotDeleteDirectories   = 0;           /// <summary>Не удалять файлы (для перезатирания ssd)</summary>
+            public int  doNotDeleteFiles         = 0;
 
             public DateTime lastMessage  = DateTime.MinValue;
             public DateTime creationTime = DateTime.Now;
@@ -39,11 +40,28 @@ namespace sdel
             /// <param name="SizeToRewrite">Общий размер файлов для перезаписи</param>
             /// <param name="cntToRewrite">Количество файлов для перезаписи</param>
             /// <param name="showProgressFlag">Флаг прогресса. 1 - отображать прогресс выполнения в консоли</param>
-            public Progress(long SizeToRewrite = 0, long cntToRewrite = 0, int showProgressFlag = 1)
+            public Progress(long SizeToRewrite = 0, long cntToRewrite = 0, int showProgressFlag = 1, Progress? progress = null)
             {
-                this.SizeToRewrite    = SizeToRewrite;
-                this.cntToRewrite     = cntToRewrite;
-                this.showProgressFlag = showProgressFlag;
+                if (progress is not null)
+                {
+                    this.SizeToRewrite            = progress.SizeToRewrite;
+                    this.cntToRewrite             = progress.cntToRewrite;
+                    this.showProgressFlag         = progress.showProgressFlag;
+                    this.slowDownFlag             = progress.slowDownFlag;
+                    this.createWithSimpleDeleting = progress.createWithSimpleDeleting;
+                    this.createDirectoriesOnly    = progress.createDirectoriesOnly;
+                    this.doNotDeleteDirectories   = progress.doNotDeleteDirectories;
+                    this.doNotDeleteFiles         = progress.doNotDeleteFiles;
+                    this.creationTime             = progress.creationTime;
+                }
+
+                if (SizeToRewrite > 0 || progress is null)
+                    this.SizeToRewrite    = SizeToRewrite;
+                if (cntToRewrite > 0 || progress is null)
+                    this.cntToRewrite     = cntToRewrite;
+
+                if (progress is null)
+                    this.showProgressFlag = showProgressFlag;
             }
 
             public float progress
@@ -199,7 +217,7 @@ namespace sdel
 
             if (args.Length < 2 || isFirstFileError)
             {
-                Console.WriteLine("sdel version: 2024 feb 28.15");
+                Console.WriteLine("sdel version: 2024 feb 28.19");
                 Console.Error.WriteLine("sdel 'flags' dir");
                 Console.WriteLine("Examples:");
                 Console.WriteLine("sdel - /home/user/.wine");
@@ -217,6 +235,7 @@ namespace sdel
                 Console.WriteLine("flag 'crf' set to the creation mode for create directories only");
                 Console.WriteLine("use ':' to use with conveyor. Example: ls -1 | sdel 'v:-'");
                 Console.WriteLine("ndd - do not delete directories");
+                Console.WriteLine("_ndf - do not delete files");
                 Console.WriteLine("Example:");
                 Console.WriteLine("sdel vvz2pr /home/user/.wine");
                 Console.WriteLine("sdel vv_z2_pr /home/user/.wine");
@@ -370,7 +389,7 @@ namespace sdel
                 if (flags.Contains("pr"))
                 {
                     var dt = progress.creationTime;
-                    progress = new Progress(SizeToRewrite: fi.Length, cntToRewrite: 1);
+                    progress = new Progress(SizeToRewrite: fi.Length, cntToRewrite: 1, progress: progress);
 
                     progress.creationTime = dt;
                 }
@@ -417,6 +436,13 @@ namespace sdel
                 Console.WriteLine("ndd - do not delete directories");
             }
 
+            if (flags.Contains("_ndf"))
+            {
+                progress.doNotDeleteFiles = 1;
+                progress.doNotDeleteDirectories = 1;
+                Console.WriteLine("_ndf - do not delete files");
+            }
+
             var di = new DirectoryInfo(path);
 
 			try
@@ -427,7 +453,7 @@ namespace sdel
 					var list = di.EnumerateFiles("*", SearchOption.AllDirectories);
 
 					var dt = progress.creationTime;
-					progress = new Progress();
+					progress = new Progress(progress: progress);
 					progress.creationTime = dt;
 
 					foreach (var file in list)
@@ -459,6 +485,18 @@ namespace sdel
 			}
 
 			DeleteFilesFromDir(di, bt: bt, progress: progress, verbose: verbose);
+
+            if (progress.doNotDeleteFiles != 0)
+            {
+                progress.showMessage(forced: true);
+
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine($"Program ended with time {progress.getMessageForEntireTimeOfSanitization}. Sanitization successfull ended for directory '{path}'");
+                Console.WriteLine();
+
+                return 0;
+            }
 
             di.Refresh();
             var checkList = di.GetFiles();
@@ -1128,7 +1166,7 @@ namespace sdel
             var fn = file.Name;
             var sb = new StringBuilder(fn.Length);
 
-            if (rename)
+            if (rename && progress.doNotDeleteFiles == 0)
             {
                 for (char ci = ' '; ci <= 'z'; ci++)
                 {
@@ -1180,6 +1218,7 @@ namespace sdel
                 }
             }
 
+            if (progress.doNotDeleteFiles == 0)
 			try
 			{
 				// Обрезаем файл только в том случае, если это не ссылка
@@ -1199,6 +1238,14 @@ namespace sdel
 
             progress.rewritedCnt++;
             progress.showMessage();
+
+            if (progress.doNotDeleteFiles != 0)
+            {
+                if (verbose >= 2)
+                    Console.WriteLine($"File sanitization successfull ended: \"{oldFileName}\"");
+
+                return;
+            }
 
             if (File.Exists(newFileName) || File.Exists(oldFileName))
                 Console.WriteLine($"Fail to delete file \"{oldFileName}\"");

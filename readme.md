@@ -84,10 +84,10 @@ flag 'pr' do show progress
 
 flag 'sl' get slow down progress (pauses when using the disk)
 
-flag 'cr' set to creation mode. A not existence file must be created as big as possible
+flag 'cr' set to creation mode. A not existence file must be created as big as possible. After creation, the files will be automatically deleted unless the "_ndf" option is applied.
 
 flag 'crd' set to creation mode with create a many count of directories.
-To clean up the inode, it is better to use other solutions.
+To clean up the inode, it is better to use other solutions (another programs).
 
 Directories are created without patterns, patterns are not applied.
 
@@ -113,6 +113,10 @@ for delete all logs in the Linux /var/log
 sudo sdel ndd /var/log
 (directories still exists)
 
+"_ndf" - do not delete files (only rewrite it content)
+for rewriting SSD and flash.
+
+Note: "_ndf" must be with underline.
 
 
 ## Usage examples
@@ -147,8 +151,15 @@ After such a rewrite, it is recommended to clear the inode.
 
 Overwriting an empty space on an SSD or flash drive (the essence is the same only in different cases).
 
-sudo sdel crd_prv_sl ~/_toErase
-sudo sdel - ~/_toErase
+sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel _ndf_pr ~/_toErase
+sudo rm -rf ~/_toErase
+
+OR
+
+sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel _ndf_pr ~/_toErase
+sudo sdel pr ~/_toErase
 
 
 The explanations are similar to those given above. Inode cleanup is also required.
@@ -243,7 +254,7 @@ sdel - /home/user/.wine
 
 Флаг "sl" вставляет паузы в работу с диском. Иногда это позволяет избежать фатального замедления остальных программ
 
-Флаг "cr" указывает программе создать большой файл. Программа создаст директорию с именем, указанным как параметр.
+Флаг "cr" указывает программе создать большой файл. Программа создаст директорию с именем, указанным как параметр. После создания файлы будут автоматически удалены, если не будет применена опция "_ndf".
 
 "crd" дополнительно создаст в указанной директории множество поддиректорий, чтобы лучше перезаписать пустое пространство на диске.
 Для очистки inode лучше использовать другие решения.
@@ -268,6 +279,11 @@ ndd - не удалять директории
 Для удаления всех логов в Linux в директории /var/log
 sudo sdel ndd /var/log
 (все папки не удалены, но ни одного файла нет)
+
+"_ndf" - не удалять файлы (только перезапись их содержимого).
+Для перезаписи SSD и флеш-накопителей.
+
+Обратите внимание: "_ndf" должна сопровождаться символом подчёркивания обязательно!
 
 
 ## Примеры использования
@@ -301,8 +317,15 @@ sudo rm -rf ~/_toErase
 
 Перезапись пустого места на SSD или флеш-накопителе (суть одно и то же только в разных корпусах).
 
-sudo sdel crd_prv_sl ~/_toErase
-sudo sdel - ~/_toErase
+sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel _ndf_pr ~/_toErase
+sudo rm -rf ~/_toErase
+
+ИЛИ
+
+sudo sdel crd_ndf_prv_sl ~/_toErase
+sudo sdel _ndf_pr ~/_toErase
+sudo sdel pr ~/_toErase
 
 Разъяснения аналогичны приведённым выше.
 
