@@ -1,5 +1,5 @@
 rm -rf ./publish
-mkdir --mode=ug+rwsX  ./publish
+mkdir --mode=ug+rwX  ./publish
 
 rm -rf ./publish/build.net
 rm -rf ./publish/build.cur
