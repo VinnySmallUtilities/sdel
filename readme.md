@@ -7,7 +7,7 @@ For Linux require to install [.NET 7.0](https://dotnet.microsoft.com/download) (
 Builded versions: see [builded.md](builded.md)
 
 
-Building for you system
+Building the sdel program for you system
 
     cd you_directory_for_sdel
     
@@ -183,7 +183,7 @@ If the "auditd" package is installed, it can also save any access to files in lo
 Собранные версии: см. [builded.md](builded.md)
 
 
-Построение для вашей системы
+Построение программы sdel для вашей системы
 
     cd you_directory_for_sdel
     
